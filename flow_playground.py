@@ -61,7 +61,9 @@ class DummyFlow(FlowSpec):
             epochs=50,
             validation_split=0.2)
         # evaluate the model
+        print("Now evaluating the model...")
         self.results = x_model.evaluate(x_test, y_test)
+        print("Eval results: {}".format(self.results))
         # finish the flow
         self.next(self.end)
 
