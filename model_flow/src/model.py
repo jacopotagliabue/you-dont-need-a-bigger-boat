@@ -1,9 +1,15 @@
+import json
 import numpy as np
 import tensorflow as tf
 import tensorflow.keras as keras
+from tensorflow.keras.models import model_from_json
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.python.client import device_lib
 from sklearn.model_selection import train_test_split
+from wandb.keras import WandbCallback
+
+from prepare_dataset import session_indexed
+from utils import return_json_file_content
 
 def train_lstm_model(x, y,
                      epochs=200,
@@ -28,16 +34,6 @@ def train_lstm_model(x, y,
     print("Print out system device...")
     print(device_lib.list_local_devices())
     print("Starting training now...")
-
-
-    # If you do no want to use wandb, you may comment out wandb_config and wandb.init
-    # Here store a dictionary of some parameters we may want to track with wandb
-    # wandb_config = {'epochs' : epochs, 'patience': patience, 'lr' : lr, "lstm_dim": lstm_dim, 'batch_size' : 128}
-    # # Initialization for a run in wandb
-    # wandb.init(project="cart-abandonment",
-    #            config=wandb_config,
-    #            id=wandb.util.generate_id())
-
 
 
     X_train, X_test, y_train, y_test = train_test_split(x,y)
@@ -69,9 +65,8 @@ def train_lstm_model(x, y,
                                        verbose=1,
                                        restore_best_weights=True)
 
-    # wandb includes callbacks for various deep learning libraries like Keras
-    # NB: If you do not want to use wandb, remove WandbCallback from list
-    callbacks = [es]#, WandbCallback()]
+    # Include wandb callback for tracking
+    callbacks = [es, WandbCallback()]
     model.compile(optimizer=opt,
                   loss=loss,
                   metrics=['accuracy'])
@@ -86,3 +81,42 @@ def train_lstm_model(x, y,
     # return trained model
     # NB: to store model as Metaflow Artifact it needs to be pickle-able!
     return model.to_json(), model.get_weights()
+
+def make_predictions(model, model_weights, test_file: str):
+
+    # re-init model and load weights
+    model = model_from_json(model)
+    model.set_weights(model_weights)
+
+    # load test data
+    test_queries = return_json_file_content(test_file)
+    X_test = []
+
+    # extract actions from test input
+    for t in test_queries:
+        session = t['query']
+        actions = []
+        for e in session:
+            # NB : we are disregarding search actions here
+            if e['product_action'] == None and e['event_type'] ==  'pageview':
+                actions.append('view')
+            elif e['product_action'] != None:
+                actions.append(e['product_action'])
+        X_test.append(actions)
+
+    # Convert to index, pad & one-hot
+    max_len = max([len(_) for _ in X_test])
+    X_test = [ session_indexed(_) for _ in X_test]
+    X_test = pad_sequences(X_test, padding="post", value=7, maxlen=max_len)
+    X_test = tf.one_hot(X_test, depth=7)
+
+    # make predictions
+    preds = model.predict(X_test,batch_size=128)
+    preds = (preds > 0.5).reshape(-1).astype(int).tolist()
+
+    # Convert to required prediction format
+    preds = [ {'label':pred} for pred in preds]
+
+    assert len(preds) == len(test_queries)
+
+    return preds
