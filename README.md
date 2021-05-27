@@ -1,8 +1,24 @@
 # metaflow-intent-prediction
-An end-to-end (Metaflow-based) implementation of an intent prediction flow for kids who can't MLOps good and [wanna Learn to do other stuff good too](https://www.youtube.com/watch?v=NQ-8IuUkJJc). 
+An end-to-end (Metaflow-based) implementation of an intent prediction flow for kids who can't MLOps 
+good and [wanna learn to do other stuff good too](https://www.youtube.com/watch?v=NQ-8IuUkJJc). 
 
+## Overview
+WIP
 
-### Configure Metaflow
+## Repo structure
+WIP
+
+## How to run the code
+WIP
+
+### Prerequisites
+
+#### Download the dataset
+
+The project uses the open dataset from the [2021 Coveo Data Challenge](https://github.com/coveooss/SIGIR-ecom-data-challenge).
+Data is freely available under a research-friendly license.
+
+#### Configure Metaflow
 
 If you have an AWS profile configured with a metaflow-friendly user, and you created 
 metaflow stack with CloudFormation, you can run the following command with the resources
