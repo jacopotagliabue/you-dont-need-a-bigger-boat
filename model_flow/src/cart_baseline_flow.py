@@ -13,7 +13,7 @@ except Exception as e:
 
 import os
 from metaflow import FlowSpec, step, batch, current, environment
-from pip_decorator import pip
+from custom_decorators import pip, enable_decorator
 
 class CartFlow(FlowSpec):
 
@@ -55,9 +55,13 @@ class CartFlow(FlowSpec):
 
 
     # @batch decorator used to run step on AWS Batch
-    @batch(gpu=1, cpu=8, image='763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.3.1-gpu-py37-cu110-ubuntu18.04')
+    # wrap batch in a switch to allow easy local testing
+    @enable_decorator(batch(gpu=1, cpu=8, image=os.getenv('BASE_IMAGE')),
+                     flag=int(os.getenv('EN_BATCH')))
     # @ environment decorator used to pass environment variables to Batch instance
-    @environment(vars={'WANDB_API_KEY': os.getenv('WANDB_API_KEY')})
+    @environment(vars={'WANDB_API_KEY': os.getenv('WANDB_API_KEY'),
+                       'BASE_IMAGE': os.getenv('BASE_IMAGE'),
+                       'EN_BATCH': os.getenv('EN_BATCH')})
     # @ custom pip decorator for pip installation on Batch instance
     @pip(libraries={'wandb': '0.10.30'})
     @step

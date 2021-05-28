@@ -1,5 +1,6 @@
 from functools import wraps
 
+
 def pip(libraries):
     def decorator(function):
         @wraps(function)
@@ -14,4 +15,12 @@ def pip(libraries):
 
         return wrapper
 
+    return decorator
+
+
+def enable_decorator(dec, flag):
+    def decorator(func):
+        if flag:
+            return dec(func)
+        return func
     return decorator
