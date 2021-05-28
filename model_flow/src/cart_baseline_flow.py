@@ -20,12 +20,13 @@ class CartFlow(FlowSpec):
     @step
     def start(self):
         """
-        Create a random dataset.
+        Start Step for a Flow;
         """
         print("flow name: %s" % current.flow_name)
         print("run id: %s" % current.run_id)
         print("username: %s" % current.username)
 
+        # Call next step in DAG with self.next(...)
         self.next(self.prepare_dataset)
 
     @step
@@ -35,7 +36,8 @@ class CartFlow(FlowSpec):
         """
         from prepare_dataset import prepare_dataset
 
-        self.dataset = prepare_dataset(training_file=os.getenv('BROWSING_TRAIN_PATH'), K=300000)
+        self.dataset = prepare_dataset(training_file=os.getenv('BROWSING_TRAIN_PATH'),
+                                       K=300000)
 
         self.next(self.get_model_config)
 
@@ -52,9 +54,11 @@ class CartFlow(FlowSpec):
         self.next(self.train_model)
 
 
-
+    # @batch decorator used to run step on AWS Batch
     @batch(gpu=1, cpu=8, image='763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.3.1-gpu-py37-cu110-ubuntu18.04')
+    # @ environment decorator used to pass environment variables to Batch instance
     @environment(vars={'WANDB_API_KEY': os.getenv('WANDB_API_KEY')})
+    # @ custom pip decorator for pip installation on Batch instance
     @pip(libraries={'wandb': '0.10.30'})
     @step
     def train_model(self):
@@ -83,6 +87,9 @@ class CartFlow(FlowSpec):
 
     @step
     def make_predictions(self):
+        """
+        Generate predictions on test inputs using trained model
+        """
         from model import make_predictions
         self.predictions = make_predictions(model=self.model,
                                             model_weights=self.model_weights,

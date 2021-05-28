@@ -9,8 +9,9 @@ def prepare_dataset(training_file:str, K:int = None):
 
 def read_sessions_from_training_file(training_file: str, K: int = None):
     user_sessions = []
-    current_session_id = None
     current_session = []
+    current_session_id = None
+
     with open(training_file) as csvfile:
         reader = csv.DictReader(csvfile)
         for idx, row in enumerate(reader):
@@ -27,7 +28,6 @@ def read_sessions_from_training_file(training_file: str, K: int = None):
             # We extract actions from session
             if row['product_action'] == '' and row['event_type'] ==  'pageview':
                 current_session.append('view')
-
             elif row['product_action'] != '':
                 current_session.append(row['product_action'])
             # update the current session id
@@ -48,6 +48,7 @@ def session_indexed(s):
     :param s: list of actions in a session (i.e 'add','detail', etc)
     :return:
     """
+    # assign an integer to each possible action token
     action_to_idx = {'start': 0, 'end': 1, 'add': 2, 'remove': 3, 'purchase': 4, 'detail': 5, 'view': 6}
     return [action_to_idx['start']] + [action_to_idx[e] for e in s] + [action_to_idx['end']]
 
@@ -64,9 +65,11 @@ def prepare_training_data(sessions):
     purchase_sessions = []
     abandon_sessions = []
     for s in sessions:
+        # check that purchase action occurs after add action
         if 'purchase' in s and 'add' in s and s.index('purchase') > s.index('add'):
             first_purchase = s.index('purchase')
             p_session = s
+            # truncate session if multiple purchase actions in a session
             if s.count('purchase') > 1:
                 second_purchase = s.index('purchase', first_purchase+1)
                 p_session = s[:second_purchase]
@@ -75,9 +78,11 @@ def prepare_training_data(sessions):
             purchase_sessions.append(p_session)
             assert not any( e == 'purchase' for e in p_session)
 
+        # add action but no purchase
         elif 'add' in s and not 'purchase' in s:
             abandon_sessions.append(s)
 
+    # convert sessions to index
     purchase_sessions = [session_indexed(s) for s in purchase_sessions]
     abandon_sessions = [session_indexed(s) for s in abandon_sessions]
 

@@ -37,7 +37,7 @@ def train_lstm_model(x, y,
 
 
     X_train, X_test, y_train, y_test = train_test_split(x,y)
-    # pad sequences
+    # pad sequences for training in batches
     max_len = max(len(_) for _ in x)
     X_train = pad_sequences(X_train, padding="post",value=7, maxlen=max_len)
     X_test = pad_sequences(X_test, padding="post", value=7, maxlen=max_len)
@@ -52,6 +52,7 @@ def train_lstm_model(x, y,
     # Define Model
     model = keras.Sequential()
     model.add(keras.layers.InputLayer(input_shape=(None,7)))
+    # Masking layer ignores padded time-steps
     model.add(keras.layers.Masking())
     model.add(keras.layers.LSTM(lstm_dim))
     model.add(keras.layers.Dense(1,activation='sigmoid'))
