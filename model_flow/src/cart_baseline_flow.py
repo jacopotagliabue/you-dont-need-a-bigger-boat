@@ -60,6 +60,7 @@ class CartFlow(FlowSpec):
                      flag=int(os.getenv('EN_BATCH')))
     # @ environment decorator used to pass environment variables to Batch instance
     @environment(vars={'WANDB_API_KEY': os.getenv('WANDB_API_KEY'),
+                       'WANDB_ENTITY' : os.getenv('WANDB_ENTITY'),
                        'BASE_IMAGE': os.getenv('BASE_IMAGE'),
                        'EN_BATCH': os.getenv('EN_BATCH')})
     # @ custom pip decorator for pip installation on Batch instance
@@ -73,8 +74,10 @@ class CartFlow(FlowSpec):
         from model import train_lstm_model
 
         assert os.getenv('WANDB_API_KEY')
+        assert os.getenv('WANDB_ENTITY')
 
-        wandb.init(project="cart-abandonment",
+        wandb.init(entity=os.getenv('WANDB_ENTITY'),
+                   project="cart-abandonment",
                    id=current.run_id,
                    config=self.config,
                    resume='allow',
