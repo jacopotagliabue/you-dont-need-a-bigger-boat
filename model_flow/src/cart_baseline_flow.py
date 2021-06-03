@@ -7,7 +7,7 @@
 # Load env variables
 try:
     from dotenv import load_dotenv
-    load_dotenv('.env')
+    load_dotenv('../.env')
 except Exception as e:
     print(e)
 
@@ -15,6 +15,7 @@ import os
 from metaflow import FlowSpec, step, batch, current, environment
 from custom_decorators import pip, enable_decorator
 
+assert os.getenv('EN_BATCH')
 
 # I'm Jia
 
