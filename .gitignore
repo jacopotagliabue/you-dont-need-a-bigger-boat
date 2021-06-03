@@ -131,3 +131,4 @@ dmypy.json
 .idea/
 .metaflow/
 */wandb
+/model_flow/data/
