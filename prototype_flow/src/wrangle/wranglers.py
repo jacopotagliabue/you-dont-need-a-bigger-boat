@@ -39,7 +39,7 @@ def search_wrangler(row_dict):
         for i, product in enumerate(skus):
             results.append({
                 **template,
-                'product_sku_hash': product,
+                'product_sku_hash': product.strip("' "),
                 'rank': str(i+1)
             })
         return results
