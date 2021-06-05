@@ -1,4 +1,6 @@
+import hashlib
 import uuid
+import numpy as np
 
 ORG_ID = str(uuid.uuid4())
 
@@ -26,27 +28,45 @@ def parse_string_to_string_array(string):
     return [x.strip() for x in parsed_string.split(",")]
 
 
+def parse_string_to_np_array(string):
+    if not string:
+        return np.array([])
+    parsed_string = string.strip('[] ')
+    if not parsed_string:
+        return np.array([])
+    return np.array([float(x) if x.strip() else np.NaN for x in parsed_string.split(",")], dtype=float)
+
+
 def search_wrangler(row_dict):
     skus = parse_string_to_string_array(row_dict['product_skus_hash'])
+    qs = hashlib.sha256(parse_string_to_np_array(row_dict['query_vector'])).hexdigest()
     template = {
         'session_id_hash':  row_dict['session_id_hash'],
-        'query_vector': row_dict['query_vector'],
         'server_timestamp_epoch_ms': row_dict['server_timestamp_epoch_ms'],
-        'organization_id': ORG_ID
+        'organization_id': ORG_ID,
+        'query_string': qs
     }
     if isinstance(skus, list) and len(skus) > 0:
         results = []
         for i, product in enumerate(skus):
             results.append({
                 **template,
-                'product_sku_hash': product.strip("' "),
-                'rank': str(i+1)
+                'raw_search_event': str({
+                    'product_sku_hash': product.strip("' "),
+                    'rank': str(i + 1),
+                    'query': qs,
+                    'query_vector': row_dict['query_vector']
+                })
             })
         return results
     return [{
         **template,
-        'product_sku_hash': '',
-        'rank': ''
+        'raw_search_event': str({
+                    'product_sku_hash': '',
+                    'rank': '',
+                    'query': qs,
+                    'query_vector': row_dict['query_vector']
+                })
     }]
 
 
