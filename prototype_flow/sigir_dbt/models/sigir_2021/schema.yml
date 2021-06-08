@@ -1,0 +1,12 @@
+version: 2
+
+sources:
+  - name: sigir_2021
+    description: 'Raw event data for SIGIR 2021'
+    database: sigir_2021
+    schema: SIGIR_2021_DEMO
+
+    tables:
+      - name: browsing_train_raw
+      - name: search_train_raw
+      - name: sku_to_content_raw

@@ -2,7 +2,7 @@
 # Name your project! Project names should contain only lowercase characters
 # and underscores. A good package name should reflect your organization's
 # name or the intended use of these models
-name: 'my_new_project'
+name: 'sigir_dbt'
 version: '1.0.0'
 config-version: 2
 
@@ -32,12 +32,9 @@ clean-targets:         # directories to be removed by `dbt clean`
 # as tables. These settings can be overridden in the individual model files
 # using the `{{ config(...) }}` macro.
 models:
-  prototype_flow:
-      # Applies to all files under models/analytics/
-      analytics:
-        materialized: view
-        +schema: public
+  sigir_dbt:
 
-      # Applies to all files under models/example/
-      example:
-          materialized: view
+      # Applies to all files under models/public/
+      public:
+        +materialized: view
+        +schema: public
