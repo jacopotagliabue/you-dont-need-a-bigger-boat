@@ -5,7 +5,7 @@ browsing_train_table = {
         ('session_id_hash', 'string'),
         ('server_timestamp_epoch_ms', 'integer'),
         ('organization_id', 'string'),
-        ('raw_browsing_event', 'string')
+        ('raw_browsing_event', 'variant')
     ]
 }
 
@@ -16,7 +16,7 @@ search_train_table = {
         ('server_timestamp_epoch_ms', 'integer'),
         ('organization_id', 'string'),
         ('query_string', 'string'),
-        ('raw_search_event', 'string')
+        ('raw_search_event', 'variant')
     ]
 }
 
@@ -26,6 +26,6 @@ sku_to_content_table = {
         ('product_sku_hash', 'string'),
         ('ingestion_timestamp_epoch_ms', 'integer'),
         ('organization_id', 'string'),
-        ('metadata', 'object')
+        ('metadata', 'variant')
     ]
 }
