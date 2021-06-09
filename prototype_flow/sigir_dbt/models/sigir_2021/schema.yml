@@ -1,8 +1,10 @@
 version: 2
 
+
+#
 sources:
   - name: sigir_2021
-    description: 'Raw event data for SIGIR 2021'
+    description: 'Source tables, the raw data is saved in these tables for SIGIR 2021. The should be kept in a different schema then processed tables.'
     database: sigir_2021
     schema: SIGIR_2021_DEMO
 

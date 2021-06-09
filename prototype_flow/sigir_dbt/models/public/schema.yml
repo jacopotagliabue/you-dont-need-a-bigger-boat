@@ -3,7 +3,7 @@ version: 2
 
 models:
     - name: browsing_flattened
-      description: "Flattening of the RAW json"
+      description: "Browsing data with JSON column flattened."
       columns:
           - name: session_id_hash
             description: "session id"
@@ -21,7 +21,7 @@ models:
             description: "hashed url"
 
     - name: search_flattened
-      description: "Flattening of raw search events"
+      description: "Search events with JSON column flattened."
       columns:
         - name: server_timestamp_epoch_ms
           description: "time of the search"
@@ -41,7 +41,7 @@ models:
           description: "query_vector"
 
     - name: content_flattened
-      description: "flattening of the content"
+      description: "Raw content with JSON column flattened."
       columns:
         - name: product_sku_hash
           description: "product_sku_hash"

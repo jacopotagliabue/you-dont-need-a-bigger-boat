@@ -16,6 +16,10 @@ Try running the following commands:
 
 ### Configuration for ~/.dbt/profiles.yml
 
+This configuration should be used in your profiles.yml to configure access to snowflake. 
+dbt will load secrets from this local file when launching a step. The profiles are maped to models
+in the dbt_project.yml.
+
     default:
         outputs:
             events:
