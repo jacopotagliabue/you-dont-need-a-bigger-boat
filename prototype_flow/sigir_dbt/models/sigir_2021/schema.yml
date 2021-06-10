@@ -1,0 +1,14 @@
+version: 2
+
+
+#
+sources:
+  - name: sigir_2021
+    description: 'Source tables, the raw data is saved in these tables for SIGIR 2021. The should be kept in a different schema then processed tables.'
+    database: sigir_2021
+    schema: SIGIR_2021_DEMO
+
+    tables:
+      - name: browsing_train_raw
+      - name: search_train_raw
+      - name: sku_to_content_raw

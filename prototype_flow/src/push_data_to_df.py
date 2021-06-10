@@ -58,8 +58,8 @@ if __name__ == "__main__":
     sku_to_content = f"{data_path}/sku_to_content.csv"
 
     with SFSelfClosingNamespaceConnection(warehouse, database, schema) as sf_con:
-        # print(sku_to_content)
-        # write_chunks(table=sku_to_content_table, filepath=sku_to_content, conn=sf_con, value_parser=sku_wrangler)
+        print(sku_to_content)
+        write_chunks(table=sku_to_content_table, filepath=sku_to_content, conn=sf_con, value_parser=sku_wrangler)
         print(search_train)
         write_chunks(table=search_train_table, filepath=search_train, conn=sf_con, value_parser=search_wrangler)
         # print(browsing_train)
