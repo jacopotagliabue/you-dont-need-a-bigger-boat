@@ -1,3 +1,7 @@
+"""
+THis file contains the table definitions for generating the simulated raw output.
+"""
+
 
 browsing_train_table = {
     'name': 'browsing_train_raw',

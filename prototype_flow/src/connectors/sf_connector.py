@@ -3,10 +3,30 @@ import os
 
 import snowflake.connector
 
-from data_loaders.sigir_data_loader import SigirBatchedGenerator
-
 
 class SFSelfClosingNamespaceConnection:
+    """
+    A class to connect to a snowflake namespace. This class wraps
+    the execute command.
+
+    Implemented to be used with the with keyword.
+
+    Methods
+    -------
+    execute(command)
+        Executes a command on Snowflake.
+
+        Wrapper around cursor.execute.
+
+    execute_many(command, seq_of_parameters)
+        Executes a command on Snowflake many times, once with each set of parameters
+        in the sequence.
+
+        Wrapper around cursor.execute_many.
+
+    upload_file(absolute_file_path, table)
+        Uploads all files matching the absolute_file_path pattern to table.
+    """
     def __init__(self, warehouse, database, schema):
         self._ctx = None
         self._cs = None
@@ -39,6 +59,11 @@ class SFSelfClosingNamespaceConnection:
         self._ctx.close()
 
     def execute(self, command):
+        """
+
+        :param command:
+        :return:
+        """
         self._cs.execute(command)
 
     def execute_many(self, command, seq_of_parameters):

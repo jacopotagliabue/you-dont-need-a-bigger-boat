@@ -2,10 +2,15 @@ import hashlib
 import uuid
 import numpy as np
 
-ORG_ID = str(uuid.uuid4())
+ORG_ID = str(uuid.uuid4()) # Randomly generated ORG_ID
 
 
 def browsing_wrangler(row_dict):
+    """
+    Formats DB rows for the browsing table.
+    :param row_dict: input row as dict
+    :return: wrangled dict
+    """
     return {
         'session_id_hash': row_dict['session_id_hash'],
         'server_timestamp_epoch_ms': int(row_dict['server_timestamp_epoch_ms']),
@@ -19,27 +24,15 @@ def browsing_wrangler(row_dict):
     }
 
 
-def parse_string_to_string_array(string):
-    if not string:
-        return []
-    parsed_string = string.strip('[] ')
-    if not parsed_string:
-        return []
-    return [x.strip() for x in parsed_string.split(",")]
-
-
-def parse_string_to_np_array(string):
-    if not string:
-        return np.array([])
-    parsed_string = string.strip('[] ')
-    if not parsed_string:
-        return np.array([])
-    return np.array([float(x) if x.strip() else np.NaN for x in parsed_string.split(",")], dtype=float)
-
-
 def search_wrangler(row_dict):
-    skus = parse_string_to_string_array(row_dict['product_skus_hash'])
-    qs = hashlib.sha256(parse_string_to_np_array(row_dict['query_vector'])).hexdigest()
+    """
+    Formats DB rows for the search table
+    :param row_dict: input row as dict
+    :return: wrangled dict
+    """
+
+    skus = _parse_string_to_string_array(row_dict['product_skus_hash'])
+    qs = hashlib.sha256(_parse_string_to_np_array(row_dict['query_vector'])).hexdigest()
     template = {
         'session_id_hash':  row_dict['session_id_hash'],
         'server_timestamp_epoch_ms': row_dict['server_timestamp_epoch_ms'],
@@ -70,19 +63,16 @@ def search_wrangler(row_dict):
     }]
 
 
-def parse_string_to_float_array(string):
-    if not string:
-        return []
-    parsed_string = string.strip('[] ')
-    if not parsed_string:
-        return []
-    return [float(x) if x.strip() else 'NaN' for x in parsed_string.split(",")]
-
-
 def sku_wrangler(row_dict):
+    """
+    Formats DB rows for the sku to content table
+    :param row_dict: input row as dict
+    :return: wrangled dict
+    """
+
     metadata = {
-        'item_vector': parse_string_to_float_array(row_dict['description_vector']),
-        'image_vector': parse_string_to_float_array(row_dict['image_vector']),
+        'item_vector': _parse_string_to_float_array(row_dict['description_vector']),
+        'image_vector': _parse_string_to_float_array(row_dict['image_vector']),
         'price_bucket': row_dict['price_bucket']
     }
     return {
@@ -91,3 +81,32 @@ def sku_wrangler(row_dict):
         'organization_id': ORG_ID,
         'metadata': metadata
     }
+
+
+def _parse_string_to_float_array(string):
+    if not string:
+        return []
+    parsed_string = string.strip('[] ')
+    if not parsed_string:
+        return []
+    return [float(x) if x.strip() else 'NaN' for x in parsed_string.split(",")]
+
+
+def _parse_string_to_string_array(string):
+    if not string:
+        return []
+    parsed_string = string.strip('[] ')
+    if not parsed_string:
+        return []
+    return [x.strip() for x in parsed_string.split(",")]
+
+
+def _parse_string_to_np_array(string):
+    if not string:
+        return np.array([])
+    parsed_string = string.strip('[] ')
+    if not parsed_string:
+        return np.array([])
+    return np.array([float(x) if x.strip() else np.NaN for x in parsed_string.split(",")], dtype=float)
+
+
