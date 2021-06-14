@@ -8,7 +8,6 @@ load_dotenv('.env')
 
 import os
 import pandas as pd
-from metaflow import S3
 from metaflow.metaflow_config import DATATOOLS_S3ROOT
 from src.utils import get_filename
 

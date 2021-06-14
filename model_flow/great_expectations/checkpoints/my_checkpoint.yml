@@ -3,9 +3,8 @@ config_version: 1.0
 template_name:
 module_name: great_expectations.checkpoint
 class_name: Checkpoint
-run_name_template:
-expectation_suite_name:
-batch_request:
+validations:
+  - batch_request:
 action_list:
   - name: store_validation_result
     action:
