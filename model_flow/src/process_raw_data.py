@@ -24,16 +24,23 @@ def process_search_train(search_train_path):
     print('\n')
     return df
 
-def process_browsing_train(search_train_path):
-    df = pd.read_parquet(search_train_path, engine='pyarrow')
+def process_browsing_train(browsing_train_path):
+    print('Processing {}'.format(browsing_train_path))
+    df = pd.read_parquet(browsing_train_path, engine='pyarrow')
     # peek at raw data
     print(df.dtypes)
     print(df.head(2))
     print('\n')
+
+    df = df.sort_values(by=['session_id_hash', 'server_timestamp_epoch_ms'])
+    # check sorting
+    print(df[['session_id_hash','server_timestamp_epoch_ms']].head(10))
+    print('\n')
+
     return df
 
-def process_sku_to_content(search_train_path):
-    df = pd.read_parquet(search_train_path, engine='pyarrow')
+def process_sku_to_content(sku_to_content_path):
+    df = pd.read_parquet(sku_to_content_path, engine='pyarrow')
     # peek at raw data
     print(df.dtypes)
     print(df.head(2))
