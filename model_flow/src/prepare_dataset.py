@@ -1,3 +1,4 @@
+import pandas as pd
 import csv
 
 
@@ -12,26 +13,25 @@ def read_sessions_from_training_file(training_file: str, K: int = None):
     current_session = []
     current_session_id = None
 
-    with open(training_file) as csvfile:
-        reader = csv.DictReader(csvfile)
-        for idx, row in enumerate(reader):
-            # if a max number of items is specified, just return at the K with what you have
-            if K and idx >= K:
-                break
-            # row will contain: session_id_hash, product_action, product_sku_hash
-            _session_id_hash = row['session_id_hash']
-            # when a new session begins, store the old one and start again
-            if current_session_id and current_session and _session_id_hash != current_session_id:
-                user_sessions.append(current_session)
-                # reset session
-                current_session = []
-            # We extract actions from session
-            if row['product_action'] == '' and row['event_type'] ==  'pageview':
-                current_session.append('view')
-            elif row['product_action'] != '':
-                current_session.append(row['product_action'])
-            # update the current session id
-            current_session_id = _session_id_hash
+    reader = pd.read_parquet(training_file)
+    for idx, row in reader.iterrows():
+        # if a max number of items is specified, just return at the K with what you have
+        if K and idx >= K:
+            break
+        # row will contain: session_id_hash, product_action, product_sku_hash
+        _session_id_hash = row['session_id_hash']
+        # when a new session begins, store the old one and start again
+        if current_session_id and current_session and _session_id_hash != current_session_id:
+            user_sessions.append(current_session)
+            # reset session
+            current_session = []
+        # We extract actions from session
+        if (row['product_action'] == '' or row['product_action'] == None) and row['event_type'] == 'pageview':
+            current_session.append('view')
+        elif row['product_action'] != '' and row['product_action'] != None:
+            current_session.append(row['product_action'])
+        # update the current session id
+        current_session_id = _session_id_hash
 
     # print how many sessions we have...
     print("# total sessions: {}".format(len(user_sessions)))
