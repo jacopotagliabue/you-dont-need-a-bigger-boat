@@ -6,3 +6,7 @@ scikit-learn==0.24.2
 wandb==0.10.30
 snowflake-connector-python==2.4.4
 dbt==0.19.1
+pyarrow==4.0.1
+pandas==1.2.4
+fsspec==2021.6.0
+s3fs
