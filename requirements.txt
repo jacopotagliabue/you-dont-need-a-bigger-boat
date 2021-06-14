@@ -10,3 +10,4 @@ pyarrow==4.0.1
 pandas==1.2.4
 fsspec==2021.6.0
 s3fs==2021.6.0
+great-expectations==0.13.19
