@@ -30,7 +30,11 @@ class CartFlow(FlowSpec):
         self.next(self.process_raw_data)
 
     @batch(cpu=8, image=os.getenv('BASE_IMAGE'))
-    @environment(vars={'BASE_IMAGE': os.getenv('BASE_IMAGE')})
+    @environment(vars={'BASE_IMAGE': os.getenv('BASE_IMAGE'),
+                       'PARQUET_S3_PATH': os.getenv('PARQUET_S3_PATH'),
+                       'SEARCH_TRAIN_PATH': os.getenv('SEARCH_TRAIN_PATH'),
+                       'BROWSING_TRAIN_PATH': os.getenv('BROWSING_TRAIN_PATH'),
+                       'SKU_TO_CONTENT_PATH': os.getenv('SKU_TO_CONTENT_PATH')})
     @pip(libraries={'pyarrow': '4.0.1', 'pandas': '1.2.4'})
     @step
     def process_raw_data(self):
@@ -55,6 +59,7 @@ class CartFlow(FlowSpec):
 
         # save as parquet onto S3
         with S3(run=self) as s3:
+            # save s3 paths in dict
             self.data_paths = dict()
             s3_root = s3._s3root
             for name, data in processed_data.items():
@@ -102,15 +107,15 @@ class CartFlow(FlowSpec):
 
     # @batch decorator used to run step on AWS Batch
     # wrap batch in a switch to allow easy local testing
-    # @enable_decorator(batch(gpu=1, cpu=8, image=os.getenv('BASE_IMAGE')),
-    #                  flag=os.getenv('EN_BATCH'))
-    # # @ environment decorator used to pass environment variables to Batch instance
-    # @environment(vars={'WANDB_API_KEY': os.getenv('WANDB_API_KEY'),
-    #                    'WANDB_ENTITY' : os.getenv('WANDB_ENTITY'),
-    #                    'BASE_IMAGE': os.getenv('BASE_IMAGE'),
-    #                    'EN_BATCH': os.getenv('EN_BATCH')})
-    # # @ custom pip decorator for pip installation on Batch instance
-    # @pip(libraries={'wandb': '0.10.30'})
+    @enable_decorator(batch(gpu=1, cpu=8, image=os.getenv('BASE_IMAGE')),
+                     flag=os.getenv('EN_BATCH'))
+    # @ environment decorator used to pass environment variables to Batch instance
+    @environment(vars={'WANDB_API_KEY': os.getenv('WANDB_API_KEY'),
+                       'WANDB_ENTITY' : os.getenv('WANDB_ENTITY'),
+                       'BASE_IMAGE': os.getenv('BASE_IMAGE'),
+                       'EN_BATCH': os.getenv('EN_BATCH')})
+    # @ custom pip decorator for pip installation on Batch instance
+    @pip(libraries={'wandb': '0.10.30'})
     @step
     def train_model(self):
         """
