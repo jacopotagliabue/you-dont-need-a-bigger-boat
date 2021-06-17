@@ -1,0 +1,48 @@
+{
+  "data_asset_type": "Dataset",
+  "expectation_suite_name": "public.content_flattened.warning",
+  "expectations": [
+    {
+      "expectation_type": "expect_column_to_exist",
+      "kwargs": {
+        "column": "item_vector"
+      },
+      "meta": {}
+    },
+    {
+      "expectation_type": "expect_column_to_exist",
+      "kwargs": {
+        "column": "image_vector"
+      },
+      "meta": {}
+    },
+    {
+      "expectation_type": "expect_column_to_exist",
+      "kwargs": {
+        "column": "price_bucket"
+      },
+      "meta": {}
+    }
+  ],
+  "meta": {
+    "citations": [
+      {
+        "batch_definition": null,
+        "batch_kwargs": {
+          "data_asset_name": "public.content_flattened",
+          "datasource": "sigir_2021",
+          "limit": 1000,
+          "schema": "public",
+          "table": "content_flattened"
+        },
+        "batch_markers": null,
+        "batch_parameters": null,
+        "batch_request": null,
+        "batch_spec": null,
+        "citation_date": "2021-06-12T18:31:43.100070Z",
+        "comment": "New suite added via CLI"
+      }
+    ],
+    "great_expectations_version": "0.13.19"
+  }
+}
