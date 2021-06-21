@@ -35,7 +35,7 @@ class CartFlow(FlowSpec):
                        'SEARCH_TRAIN_PATH': os.getenv('SEARCH_TRAIN_PATH'),
                        'BROWSING_TRAIN_PATH': os.getenv('BROWSING_TRAIN_PATH'),
                        'SKU_TO_CONTENT_PATH': os.getenv('SKU_TO_CONTENT_PATH')})
-    @pip(libraries={'pyarrow': '4.0.1', 'pandas': '1.2.4'})
+    @pip(libraries={'pyarrow': '0.15.0', 'pandas': '1.2.4'})
     @step
     def process_raw_data(self):
         """
@@ -78,23 +78,7 @@ class CartFlow(FlowSpec):
         """
         import pandas as pd
         import great_expectations as ge
-        from great_expectations.core.batch import RuntimeBatchRequest
         context = ge.data_context.DataContext()
-
-        # Not sure how to use this class effectively
-        # runtime_batch_request = RuntimeBatchRequest(datasource_name='s3_parquet',
-        #                                             data_connector_name="runtime_data_connector",
-        #                                             data_asset_name='browsing_train',
-        #                                             runtime_parameters={
-        #                                                 # bug in ge prevents it from reading parquet directly
-        #                                                "batch_data": pd.read_parquet(self.data_paths['browsing_train'],
-        #                                                                              engine='pyarrow')
-        #                                             },
-        #                                             batch_identifiers={
-        #                                                 "run_id" : current.run_id,
-        #                                                 "data_name" : 'browsing_train'
-        #                                             })
-
         context.run_checkpoint(checkpoint_name='my_checkpoint',
                                batch_request={
                                    'datasource_name':'s3_parquet',
