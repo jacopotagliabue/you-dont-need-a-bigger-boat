@@ -29,13 +29,13 @@ class CartFlow(FlowSpec):
         # Call next step in DAG with self.next(...)
         self.next(self.process_raw_data)
 
-    @batch(cpu=8, image=os.getenv('BASE_IMAGE'))
-    @environment(vars={'BASE_IMAGE': os.getenv('BASE_IMAGE'),
+    @batch(cpu=8, image=os.getenv('RAPIDS_IMAGE'), memory=80000)
+    @environment(vars={'RAPIDS_IMAGE': os.getenv('RAPIDS_IMAGE'),
                        'PARQUET_S3_PATH': os.getenv('PARQUET_S3_PATH'),
                        'SEARCH_TRAIN_PATH': os.getenv('SEARCH_TRAIN_PATH'),
                        'BROWSING_TRAIN_PATH': os.getenv('BROWSING_TRAIN_PATH'),
                        'SKU_TO_CONTENT_PATH': os.getenv('SKU_TO_CONTENT_PATH')})
-    @pip(libraries={'pyarrow': '0.15.0', 'pandas': '1.2.4'})
+    @pip(libraries={'boto3':'1.17.11', 's3fs':'0.4.2', 'pandas': '1.2.4'})
     @step
     def process_raw_data(self):
         """
