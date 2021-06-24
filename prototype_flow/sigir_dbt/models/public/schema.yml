@@ -13,6 +13,10 @@ models:
             description: "organization id"
             tests:
                 - not_null
+          - name: server_timestamp
+            description: "time of the search"
+            tests:
+                - not_null
           - name: event_type
             description: "event_type"
           - name: product_sku_hash
@@ -23,7 +27,7 @@ models:
     - name: search_flattened
       description: "Search events with JSON column flattened."
       columns:
-        - name: server_timestamp_epoch_ms
+        - name: server_timestamp
           description: "time of the search"
           tests:
             - not_null
@@ -47,7 +51,7 @@ models:
           description: "product_sku_hash"
           tests:
             - not_null
-        - name: ingestion_timestamp_epoch_ms
+        - name: ingestion_timestamp
           description: "time stamp"
           tests:
             - not_null
