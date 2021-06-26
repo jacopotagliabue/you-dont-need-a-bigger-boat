@@ -1,44 +1,39 @@
-import csv
+import os
+import json
+
+from enum import Enum
+from data_processing.connectors.sf_connector import SFSelfClosingNamespaceConnection
 
 
-def prepare_dataset(training_file:str, K:int = None):
-    sessions = read_sessions_from_training_file(training_file, K)
+class Actions(int, Enum):
+    start = 0
+    end = 1
+    add = 2
+    remove = 3
+    purchase = 4
+    detail = 5
+    pageview = 6
+
+
+def prepare_dataset():
+    sessions = read_data_from_snowflake('', ['events'])
     x, y = prepare_training_data(sessions)
+    return {'X': x, 'y': y}
 
-    return {'X' : x, 'y': y}
 
-def read_sessions_from_training_file(training_file: str, K: int = None):
-    user_sessions = []
-    current_session = []
-    current_session_id = None
-
-    with open(training_file) as csvfile:
-        reader = csv.DictReader(csvfile)
-        for idx, row in enumerate(reader):
-            # if a max number of items is specified, just return at the K with what you have
-            if K and idx >= K:
-                break
-            # row will contain: session_id_hash, product_action, product_sku_hash
-            _session_id_hash = row['session_id_hash']
-            # when a new session begins, store the old one and start again
-            if current_session_id and current_session and _session_id_hash != current_session_id:
-                user_sessions.append(current_session)
-                # reset session
-                current_session = []
-            # We extract actions from session
-            if row['product_action'] == '' and row['event_type'] ==  'pageview':
-                current_session.append('view')
-            elif row['product_action'] != '':
-                current_session.append(row['product_action'])
-            # update the current session id
-            current_session_id = _session_id_hash
-
-    # print how many sessions we have...
-    print("# total sessions: {}".format(len(user_sessions)))
-    # print first one to check
-    print("First session is: {}".format(user_sessions[0]))
-
-    return user_sessions
+def read_data_from_snowflake(table, columns):
+    # load env
+    try:
+        from dotenv import load_dotenv
+        load_dotenv('.env')
+    except Exception as e:
+        print(e)
+    warehouse = os.getenv("SNOWFLAKE_WAREHOUSE")
+    database = os.getenv("SNOWFLAKE_DB")
+    schema = os.getenv("SNOWFLAKE_SCHEMA_TARGET")
+    with SFSelfClosingNamespaceConnection(warehouse, database, schema) as sf_con:
+        sessions = sf_con.dict_get_all()
+    return [[Actions[event['normalized_action']] for event in json.loads(session['EVENTS'])] for session in sessions]
 
 
 def session_indexed(s):
@@ -49,8 +44,7 @@ def session_indexed(s):
     :return:
     """
     # assign an integer to each possible action token
-    action_to_idx = {'start': 0, 'end': 1, 'add': 2, 'remove': 3, 'purchase': 4, 'detail': 5, 'view': 6}
-    return [action_to_idx['start']] + [action_to_idx[e] for e in s] + [action_to_idx['end']]
+    return [Actions.start.value] + [e.value for e in s] + [Actions.end.value]
 
 
 def prepare_training_data(sessions):
@@ -66,20 +60,20 @@ def prepare_training_data(sessions):
     abandon_sessions = []
     for s in sessions:
         # check that purchase action occurs after add action
-        if 'purchase' in s and 'add' in s and s.index('purchase') > s.index('add'):
-            first_purchase = s.index('purchase')
+        if Actions.purchase in s and Actions.add in s and s.index(Actions.purchase) > s.index(Actions.add):
+            first_purchase = s.index(Actions.purchase)
             p_session = s
             # truncate session if multiple purchase actions in a session
-            if s.count('purchase') > 1:
-                second_purchase = s.index('purchase', first_purchase+1)
+            if s.count(Actions.purchase) > 1:
+                second_purchase = s.index(Actions.purchase, first_purchase+1)
                 p_session = s[:second_purchase]
             # remove actual purchase from list
             p_session.pop(first_purchase)
             purchase_sessions.append(p_session)
-            assert not any( e == 'purchase' for e in p_session)
+            assert not any(e == Actions.purchase for e in p_session)
 
         # add action but no purchase
-        elif 'add' in s and not 'purchase' in s:
+        elif Actions.add in s and not Actions.purchase in s:
             abandon_sessions.append(s)
 
     # convert sessions to index
@@ -90,7 +84,7 @@ def prepare_training_data(sessions):
     x = purchase_sessions + abandon_sessions
 
     # give label=1 for purchase, label=0 for abandon
-    y = [1]*len(purchase_sessions) +[0]*len(abandon_sessions)
+    y = [1]*len(purchase_sessions) + [0]*len(abandon_sessions)
     assert len(x) == len(y)
 
     return x, y

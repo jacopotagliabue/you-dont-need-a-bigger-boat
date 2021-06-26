@@ -83,6 +83,10 @@ models:
             - not_null
         - name: event_type
           description: "event_type"
+        - name: normalized_action
+          description: "normalization of event_type and product action"
+          test:
+            - not_null
         - name: product_sku_hash
           description: "product_sku_hash"
         - name: hashed_url
@@ -116,9 +120,13 @@ models:
           description: "number of actions in a session"
           tests:
             - not_null
+        - name: add_action_count
+          description: "number of add actions"
+          tests:
+            - not_null
 
     - name: sessions
-      description: "Browsing data with duplicates removed."
+      description: "Events grouped by session"
       columns:
         - name: session_id_hash
           description: "session id"
@@ -142,3 +150,37 @@ models:
             - not_null
         - name: session_action_count
           description: "number of actions in a session"
+        - name: add_action_count
+          description: "number of add actions"
+          tests:
+            - not_null
+
+    - name: cart_sessions
+      description: "Only sessions containing at least 1 add action."
+      columns:
+        - name: session_id_hash
+          description: "session id"
+          tests:
+            - not_null
+        - name: organization_id
+          description: "organization id"
+          tests:
+            - not_null
+        - name: start_time
+          description: "time of first session event"
+          tests:
+            - not_null
+        - name: events
+          description: "list of events in a session"
+          tests:
+            - not_null
+        - name: session_action_count
+          description: "number of events in a session"
+          tests:
+            - not_null
+        - name: session_action_count
+          description: "number of actions in a session"
+        - name: add_action_count
+          description: "number of add actions"
+          tests:
+            - not_null

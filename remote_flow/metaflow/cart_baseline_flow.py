@@ -36,8 +36,7 @@ class CartFlow(FlowSpec):
         """
         from prepare_dataset import prepare_dataset
 
-        self.dataset = prepare_dataset(training_file=os.getenv('BROWSING_TRAIN_PATH'),
-                                       K=300000)
+        self.dataset = prepare_dataset()
 
         self.next(self.get_model_config)
 

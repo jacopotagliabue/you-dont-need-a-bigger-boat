@@ -1,0 +1,7 @@
+{
+  "EPOCHS":1,
+  "PATIENCE":10,
+  "LSTM_DIMS":48,
+  "BATCH_SIZE":128,
+  "LEARNING_RATE":1e-3
+}

@@ -8,8 +8,20 @@ from tensorflow.python.client import device_lib
 from sklearn.model_selection import train_test_split
 from wandb.keras import WandbCallback
 
-from prepare_dataset import session_indexed
 from utils import return_json_file_content
+
+
+def session_indexed(s):
+    """
+    Converts a session (of actions) to indices and adds start/end tokens
+
+    :param s: list of actions in a session (i.e 'add','detail', etc)
+    :return:
+    """
+    # assign an integer to each possible action token
+    action_to_idx = {'start': 0, 'end': 1, 'add': 2, 'remove': 3, 'purchase': 4, 'detail': 5, 'view': 6}
+    return [action_to_idx['start']] + [action_to_idx[e] for e in s] + [action_to_idx['end']]
+
 
 def train_lstm_model(x, y,
                      epochs=200,
@@ -83,6 +95,7 @@ def train_lstm_model(x, y,
     # NB: to store model as Metaflow Artifact it needs to be pickle-able!
     return model.to_json(), model.get_weights()
 
+
 def make_predictions(model, model_weights, test_file: str):
 
     # re-init model and load weights
@@ -99,7 +112,7 @@ def make_predictions(model, model_weights, test_file: str):
         actions = []
         for e in session:
             # NB : we are disregarding search actions here
-            if e['product_action'] == None and e['event_type'] ==  'pageview':
+            if e['product_action'] == None and e['event_type'] == 'pageview':
                 actions.append('view')
             elif e['product_action'] != None:
                 actions.append(e['product_action'])
@@ -107,7 +120,7 @@ def make_predictions(model, model_weights, test_file: str):
 
     # Convert to index, pad & one-hot
     max_len = max([len(_) for _ in X_test])
-    X_test = [ session_indexed(_) for _ in X_test]
+    X_test = [session_indexed(_) for _ in X_test]
     X_test = pad_sequences(X_test, padding="post", value=7, maxlen=max_len)
     X_test = tf.one_hot(X_test, depth=7)
 
