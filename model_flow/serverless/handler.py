@@ -4,6 +4,7 @@ import configparser
 import time
 import os
 
+
 # read config file
 config = configparser.ConfigParser()
 config.read('settings.ini')
@@ -63,13 +64,31 @@ def predict(event, context):
     :param context: standard AWS lambda context param - not use in this application
     :return:
     """
+    # static "feature store"
+    action_map = {
+        'start' : [1,0,0,0,0,0,0],
+        'end' : [0,1,0,0,0,0,0],
+        'add' : [0,0,1,0,0,0,0],
+        'remove' : [0,0,0,1,0,0,0],
+        'purchase' : [0,0,0,0,1,0,0],
+        'detail' : [0,0,0,0,0,1,0],
+        'view' : [0,0,0,0,0,0,1],
+        'empty' : [0,0,0,0,0,0,0]
+    }
+
     print("Received event: " + json.dumps(event))
     params = event['queryStringParameters']
     response = dict()
     start = time.time()
-    print(params)
-    input_payload = { 'instances': [[(json.loads(params.get('x', '[0,0,0,0,0,0,0]')))]] }  # input is array of array, even if we just ask for 1 prediction here
+    session_str = params.get('session','')
+    session = session_str.split(',') if session_str != '' else []
 
+    print(session)
+
+    session = ['start'] + session + ['end']
+
+    session_onehot = [ action_map[_] if _ in action_map else action_map['empty'] for _ in session]
+    input_payload = { 'instances': [ session_onehot ] }  # input is array of array, even if we just ask for 1 prediction here
     result = get_response_from_sagemaker(json.dumps(input_payload),
                                          SAGEMAKER_ENDPOINT_NAME,
                                          content_type='application/json')

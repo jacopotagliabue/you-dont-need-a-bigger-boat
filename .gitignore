@@ -132,3 +132,4 @@ dmypy.json
 .metaflow/
 */wandb
 /model_flow/data/
+**.ini
