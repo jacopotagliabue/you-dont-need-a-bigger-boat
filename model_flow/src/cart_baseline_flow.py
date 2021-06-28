@@ -12,7 +12,7 @@ except Exception as e:
     print(e)
 
 import os
-from metaflow import FlowSpec, step, batch, current, environment, S3
+from metaflow import FlowSpec, step, batch, current, environment, S3, Parameter
 from custom_decorators import pip, enable_decorator
 
 class CartFlow(FlowSpec):
@@ -29,7 +29,7 @@ class CartFlow(FlowSpec):
         # Call next step in DAG with self.next(...)
         self.next(self.process_raw_data)
 
-    @batch(cpu=8, image=os.getenv('RAPIDS_IMAGE'), memory=80000)
+    @batch(gpu=1, cpu=8, image=os.getenv('RAPIDS_IMAGE'), memory=80000)
     @environment(vars={'RAPIDS_IMAGE': os.getenv('RAPIDS_IMAGE'),
                        'PARQUET_S3_PATH': os.getenv('PARQUET_S3_PATH'),
                        'SEARCH_TRAIN_PATH': os.getenv('SEARCH_TRAIN_PATH'),
@@ -51,6 +51,8 @@ class CartFlow(FlowSpec):
         SEARCH_TRAIN_PATH =  os.path.join(DATASET_PATH, get_filename(os.getenv('SEARCH_TRAIN_PATH'))+ '.parquet')
         BROWSING_TRAIN_PATH = os.path.join(DATASET_PATH, get_filename(os.getenv('BROWSING_TRAIN_PATH')) + '.parquet')
         SKU_TO_CONTENT_PATH = os.path.join(DATASET_PATH, get_filename(os.getenv('SKU_TO_CONTENT_PATH')) + '.parquet')
+
+        os.system('nvidia-smi')
 
         # process raw data
         processed_data = process_raw_data(search_train_path=SEARCH_TRAIN_PATH,
@@ -160,19 +162,68 @@ class CartFlow(FlowSpec):
                                                           lstm_dim=self.config['LSTM_DIMS'],
                                                           batch_size=self.config['BATCH_SIZE'],
                                                           lr=self.config['LEARNING_RATE'])
-        self.next(self.make_predictions)
+        self.next(self.deploy)
 
     @step
-    def make_predictions(self):
+    def deploy(self):
         """
-        Generate predictions on test inputs using trained model
+        Deploy model on SageMaker
         """
-        from model import make_predictions
-        self.predictions = make_predictions(model=self.model,
-                                            model_weights=self.model_weights,
-                                            test_file=os.getenv('INTENT_TEST_PATH'))
-        print('First 5 predictions...')
-        print(self.predictions[:5])
+        from sagemaker.tensorflow import TensorFlowModel
+        from tensorflow.keras.models import model_from_json
+        import tensorflow as tf
+        import numpy as np
+        import tarfile
+        import time
+
+        # generate a signature for the endpoint, using learning rate and timestamp as a convention
+        ENDPOINT_NAME = 'intent-{}-endpoint'.format(int(round(time.time() * 1000)))
+        # print out the name, so that we can use it when deploying our lambda
+        print("\n\n================\nEndpoint name is: {}\n\n".format(ENDPOINT_NAME))
+
+        tf_model = model_from_json(self.model)
+        tf_model.set_weights(self.model_weights)
+
+        model_name = "intent-model-{}/1".format(current.run_id)
+        local_tar_name = 'model-{}.tar.gz'.format(current.run_id)
+
+
+
+        tf_model.save(filepath=model_name)
+        with tarfile.open(local_tar_name, mode="w:gz") as _tar:
+            _tar.add(model_name, recursive=True)
+
+        with open(local_tar_name, "rb") as in_file:
+            data = in_file.read()
+            with S3(run=self) as s3:
+                url = s3.put(local_tar_name, data)
+                # print it out for debug purposes
+                print("Model saved at: {}".format(url))
+                # save this path for downstream reference!
+                self.model_s3_path = url
+
+        #remove local files
+        model = TensorFlowModel(
+            model_data=self.model_s3_path,
+            image_uri=os.getenv('DOCKER_IMAGE_URI'),
+            role=os.getenv('IAM_SAGEMAKER_ROLE'))
+
+        predictor = model.deploy(
+            initial_instance_count=1,
+            instance_type=os.getenv('SAGEMAKER_INSTANCE'),
+            endpoint_name=ENDPOINT_NAME)
+
+        # prepare a test input
+        test_inp = {'instances' : tf.one_hot(np.array([[0,1,1,3,4,5]]),
+                                             on_value=1,
+                                             off_value=0,
+                                             depth=7).numpy() }
+
+        result = predictor.predict(test_inp)
+        print(test_inp, result)
+        assert result['predictions'][0][0] > 0
+
+
         self.next(self.end)
 
     @step
