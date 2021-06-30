@@ -2,7 +2,7 @@ metaflow==2.2.13
 numpy==1.19.5
 tensorflow==2.5.0
 python-dotenv==0.13.0
-scikit-learn==0.24.2
+scikit-learn==0.24.1
 wandb==0.10.30
 snowflake-connector-python==2.4.4
 dbt==0.19.1
