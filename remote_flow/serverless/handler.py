@@ -20,6 +20,11 @@ runtime = boto3.client('runtime.sagemaker',
 
 
 def encode_input(request_session):
+    """
+    Helper function to map the input terms to their one hot encoding.
+    :param request_session: string representation of a list of events
+    :return: Array of 1-hot encoding vectors (as lists)
+    """
     one_hot_encoding = {
         'start': [1, 0, 0, 0, 0, 0, 0],
         'end': [0, 1, 0, 0, 0, 0, 0],
@@ -89,7 +94,6 @@ def predict(event, context):
     if result:
         # print for debugging in AWS Cloudwatch
         print(result)
-        # get the first item in the prediction array, as it is a 1-1 prediction
         response = result['predictions']
 
     return wrap_response(status_code=200, body={
