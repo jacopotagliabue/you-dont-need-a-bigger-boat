@@ -80,22 +80,27 @@ class CartFlow(FlowSpec):
         """
         import pandas as pd
         import great_expectations as ge
+        from datetime import datetime
+
         context = ge.data_context.DataContext()
-        context.run_checkpoint(checkpoint_name='my_checkpoint',
-                               batch_request={
-                                   'datasource_name':'s3_parquet',
-                                    'data_connector_name':'runtime_data_connector',
-                                    'data_asset_name':'browsing_train',
-                                    'runtime_parameters':{
-                                        # bug in ge prevents it from reading parquet directly
-                                       'batch_data': pd.read_parquet(self.data_paths['browsing_train'], engine='pyarrow')
-                                    },
-                                    'batch_identifiers':{
-                                        "run_id" : current.run_id,
-                                        "data_name" : 'browsing_train'
-                                    }
-                               },
-                               expectation_suite_name='model_flow')
+        for data_name,data_path in self.data_paths.items():
+            context.run_checkpoint(checkpoint_name='my_checkpoint',
+                                   batch_request={
+                                       'datasource_name':'s3_parquet',
+                                        'data_connector_name':'runtime_data_connector',
+                                        'data_asset_name':'browsing_train',
+                                        'runtime_parameters':{
+                                            # bug in GE prevents it from reading parquet directly
+                                           'batch_data': pd.read_parquet(data_path, engine='pyarrow')
+                                        },
+                                        'batch_identifiers':{
+                                            "run_id" : current.run_id,
+                                            "data_name" : data_name
+                                        }
+                                   },
+                                   run_name= '-'.join([current.flow_name, current.run_id, data_name]),
+                                   run_time=datetime.utcnow(),
+                                   expectation_suite_name='model_flow')
         context.build_data_docs()
         context.open_data_docs()
         self.next(self.prepare_dataset)
