@@ -82,16 +82,22 @@ class CartFlow(FlowSpec):
         import great_expectations as ge
         from datetime import datetime
 
+        # add great_expectations/plugins to path
+        import sys
+        sys.path.append('great_expectations')
+        from plugins.custom_expectation import ExpectAverageSessionLengthToBeBetween
+
         context = ge.data_context.DataContext()
         for data_name,data_path in self.data_paths.items():
-            context.run_checkpoint(checkpoint_name='my_checkpoint',
+            data = pd.read_parquet(data_path, engine='pyarrow')
+            context.run_checkpoint(checkpoint_name='intent_checkpoint',
                                    batch_request={
-                                       'datasource_name':'s3_parquet',
+                                        'datasource_name':'s3_parquet',
                                         'data_connector_name':'runtime_data_connector',
-                                        'data_asset_name':'browsing_train',
+                                        'data_asset_name':data_name,
                                         'runtime_parameters':{
                                             # bug in GE prevents it from reading parquet directly
-                                           'batch_data': pd.read_parquet(data_path, engine='pyarrow')
+                                           'batch_data': data
                                         },
                                         'batch_identifiers':{
                                             "run_id" : current.run_id,
@@ -100,7 +106,7 @@ class CartFlow(FlowSpec):
                                    },
                                    run_name= '-'.join([current.flow_name, current.run_id, data_name]),
                                    run_time=datetime.utcnow(),
-                                   expectation_suite_name='model_flow')
+                                   expectation_suite_name=data_name)
         context.build_data_docs()
         context.open_data_docs()
         self.next(self.prepare_dataset)

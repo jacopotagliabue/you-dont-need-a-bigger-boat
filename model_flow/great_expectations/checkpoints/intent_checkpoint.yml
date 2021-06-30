@@ -1,4 +1,4 @@
-name: my_checkpoint
+name: intent_checkpoint
 config_version: 1.0
 template_name:
 module_name: great_expectations.checkpoint
