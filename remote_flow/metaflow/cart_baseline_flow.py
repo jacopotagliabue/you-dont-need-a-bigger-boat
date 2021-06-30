@@ -5,6 +5,9 @@
 """
 
 # Load env variables
+import tarfile
+import time
+
 try:
     from dotenv import load_dotenv
     load_dotenv('.env')
@@ -12,10 +15,31 @@ except Exception as e:
     print(e)
 
 import os
-from metaflow import FlowSpec, step, batch, current, environment
+from metaflow import FlowSpec, step, batch, current, environment, Parameter, S3
 from custom_decorators import pip, enable_decorator
 
 class CartFlow(FlowSpec):
+
+    # uri from: https://github.com/aws/deep-learning-containers/blob/master/available_images.md
+    DOCKER_IMAGE_URI = Parameter(
+        name='sagemaker_image',
+        help='AWS Docker Image URI for SageMaker Inference',
+        default='763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference:2.3.0-gpu-py37-cu102-ubuntu18.04'
+    )
+
+    SAGEMAKER_INSTANCE = Parameter(
+        name='sagemaker_instance',
+        help='AWS Instance to Power SageMaker Inference',
+        default='ml.t2.medium'
+    )
+
+    # this is the name of the IAM role with SageMaker permissions
+    # make sure this role has access to the bucket containing the tar file!
+    IAM_SAGEMAKER_ROLE = Parameter(
+        name='sagemaker_role',
+        help='AWS Role for SageMaker',
+        default='MetaSageMakerRole'
+    )
 
     @step
     def start(self):
@@ -82,26 +106,87 @@ class CartFlow(FlowSpec):
                    resume='allow',
                    reinit=True)
 
-        self.model, self.model_weights = train_lstm_model(x=self.dataset['X'],
+        self.model, self.model_weights, x_model = train_lstm_model(x=self.dataset['X'],
                                                           y=self.dataset['y'],
                                                           epochs=self.config['EPOCHS'],
                                                           patience=self.config['PATIENCE'],
                                                           lstm_dim=self.config['LSTM_DIMS'],
                                                           batch_size=self.config['BATCH_SIZE'],
                                                           lr=self.config['LEARNING_RATE'])
-        self.next(self.make_predictions)
+
+        model_name = "metaflow-intent-prediction-remote-model-{}/1-{}".format(self.config['LEARNING_RATE'], time.time())
+        local_tar_name = 'model-{}.tar.gz'.format(self.config['LEARNING_RATE'])
+        x_model.save(filepath=model_name)
+        # zip keras folder to a single tar file
+        with tarfile.open(local_tar_name, mode="w:gz") as _tar:
+            _tar.add(model_name, recursive=True)
+        # metaflow nice s3 client needs a byte object for the put
+        # IMPORTANT: if you're using the metaflow local setup,
+        # you have to upload the model to S3 for
+        # sagemaker using custom code - replace the metaflow client here with a standard
+        # boto call and a target bucket over which you have writing permissions
+        # remember to store in self.s3_path the final full path of the model tar file, to be used
+        # downstream by sagemaker!
+        with open(local_tar_name, "rb") as in_file:
+            data = in_file.read()
+            with S3(run=self) as s3:
+                url = s3.put(local_tar_name, data)
+                # print it out for debug purposes
+                print("Model saved at: {}".format(url))
+                # save this path for downstream reference!
+                self.s3_path = url
+
+        self.next(self.deploy)
 
     @step
-    def make_predictions(self):
+    def deploy(self):
         """
-        Generate predictions on test inputs using trained model
+        Use SageMaker to deploy the model as a stand-alone, PaaS endpoint, with our choice of the underlying
+        Docker image and hardware capabilities.
+        Available images for inferences can be chosen from AWS official list:
+        https://github.com/aws/deep-learning-containers/blob/master/available_images.md
+        Once the endpoint is deployed, you can add a further step with for example behavioral testing, to
+        ensure model robustness (e.g. see https://arxiv.org/pdf/2005.04118.pdf). Here, we just "prove" that
+        the endpoint is up and running!
         """
+        from sagemaker.tensorflow import TensorFlowModel
+        from sagemaker.session import Session
         from model import make_predictions
-        self.predictions = make_predictions(model=self.model,
-                                            model_weights=self.model_weights,
-                                            test_file=os.getenv('INTENT_TEST_PATH'))
-        print('First 5 predictions...')
-        print(self.predictions[:5])
+        import boto3
+
+
+        # The default sagemaker role does not seem to have the required permission to list tags which is needed
+        # to update the endpoint.
+        boto_session = boto3.session.Session(region_name=os.getenv('SAGE_REGION', 'us-west-2'),
+                                                  aws_access_key_id=os.getenv('SAGE_USER'),
+                                                  aws_secret_access_key=os.getenv('SAGE_SECRET'))
+
+        sagemaker_client = boto_session.client('sagemaker')
+
+        sagemaker_session = Session(boto_session)
+
+        # generate a signature for the endpoint, using learning rate and timestamp as a convention
+        self.endpoint_name = os.getenv('SAGEMAKER_ENDPOINT_NAME', 'metaflow-intent-remote-endpoint')
+        # print out the name, so that we can use it when deploying our lambda
+        print("\n\n================\nEndpoint name is: {}\n\n".format(self.endpoint_name))
+        model = TensorFlowModel(
+            model_data=self.s3_path,
+            image_uri=self.DOCKER_IMAGE_URI,
+            role=self.IAM_SAGEMAKER_ROLE)
+        # #check if the endpoint already exists
+        if sagemaker_client.list_endpoints(NameContains='metaflow-intent-remote-endpoint').get('Endpoints', []):
+            predictor = model.predictor_cls(self.endpoint_name, sagemaker_session)
+            predictor.update_endpoint()
+        else:
+            predictor = model.deploy(initial_instance_count=1,
+                instance_type=self.SAGEMAKER_INSTANCE,
+                endpoint_name=self.endpoint_name)
+
+
+        self.prediction = make_predictions(self.predictor)
+        assert self.prediction
+        print('First prediction')
+        print(self.prediction)
         self.next(self.end)
 
     @step

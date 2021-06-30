@@ -93,44 +93,17 @@ def train_lstm_model(x, y,
 
     # return trained model
     # NB: to store model as Metaflow Artifact it needs to be pickle-able!
-    return model.to_json(), model.get_weights()
+    return model.to_json(), model.get_weights(), model
 
 
-def make_predictions(model, model_weights, test_file: str):
-
-    # re-init model and load weights
-    model = model_from_json(model)
-    model.set_weights(model_weights)
-
+def make_predictions(predictor):
     # load test data
-    test_queries = return_json_file_content(test_file)
-    X_test = []
-
-    # extract actions from test input
-    for t in test_queries:
-        session = t['query']
-        actions = []
-        for e in session:
-            # NB : we are disregarding search actions here
-            if e['product_action'] == None and e['event_type'] == 'pageview':
-                actions.append('view')
-            elif e['product_action'] != None:
-                actions.append(e['product_action'])
-        X_test.append(actions)
-
-    # Convert to index, pad & one-hot
-    max_len = max([len(_) for _ in X_test])
-    X_test = [session_indexed(_) for _ in X_test]
-    X_test = pad_sequences(X_test, padding="post", value=7, maxlen=max_len)
-    X_test = tf.one_hot(X_test, depth=7)
+    test_inp = {'instances': tf.one_hot(np.array([[0, 1, 1, 3, 4, 5]]),
+                                        on_value=1,
+                                        off_value=0,
+                                        depth=7).numpy()}
 
     # make predictions
-    preds = model.predict(X_test,batch_size=128)
-    preds = (preds > 0.5).reshape(-1).astype(int).tolist()
-
-    # Convert to required prediction format
-    preds = [{'label': pred} for pred in preds]
-
-    assert len(preds) == len(test_queries)
+    preds = predictor.predict(test_inp)
 
     return preds
