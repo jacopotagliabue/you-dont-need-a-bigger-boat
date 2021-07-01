@@ -85,7 +85,7 @@ def train_lstm_model(x, y,
                   metrics=['accuracy'])
 
     # Train Model
-    model.fit(X_train,y_train,
+    model.fit(X_train, y_train,
               validation_data=(X_test,y_test),
               batch_size=batch_size,
               epochs=epochs,

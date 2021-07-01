@@ -95,6 +95,10 @@ class CartFlow(FlowSpec):
         """
         import wandb
         from model import train_lstm_model
+        import tensorflow as tf
+        from tensorflow.keras.preprocessing.sequence import pad_sequences
+        # from gantry.summarize import SummarizationContext
+        # import gantry.sdk as gantry_sdk
 
         assert os.getenv('WANDB_API_KEY')
         assert os.getenv('WANDB_ENTITY')
@@ -117,6 +121,10 @@ class CartFlow(FlowSpec):
         model_name = "metaflow-intent-prediction-remote-model-{}/1-{}".format(self.config['LEARNING_RATE'], time.time())
         local_tar_name = 'model-{}.tar.gz'.format(self.config['LEARNING_RATE'])
         x_model.save(filepath=model_name)
+        max_len = max(len(_) for _ in self.dataset['X'][0:1000])
+        X_train = pad_sequences(self.dataset['X'][0:1000], padding="post", value=7, maxlen=max_len)
+        self.X = tf.one_hot(X_train, depth=7)
+        self.y = x_model.predict(self.X, batch_size=self.config['BATCH_SIZE'])
         # zip keras folder to a single tar file
         with tarfile.open(local_tar_name, mode="w:gz") as _tar:
             _tar.add(model_name, recursive=True)
@@ -137,6 +145,19 @@ class CartFlow(FlowSpec):
                 self.s3_path = url
 
         self.next(self.deploy)
+
+    # @step
+    # def send_to_gantry(self):
+    #     from gantry.summarize import SummarizationContext
+    #     import gantry.sdk as gantry_sdk
+    #
+    #     gantry_sdk.init()
+    #
+    #     with SummarizationContext("loan_pred") as ctx:
+    #         ctx.register(inputs=self.dataset['X'], outputs=self.predictions)
+    #         gantry_sdk.set_reference(ctx)
+    #
+    #     self.next(self.deploy)
 
     @step
     def deploy(self):
@@ -183,10 +204,10 @@ class CartFlow(FlowSpec):
                 endpoint_name=self.endpoint_name)
 
 
-        self.prediction = make_predictions(self.predictor)
-        assert self.prediction
+        self.endpoint_prediction = make_predictions(predictor)
+        assert self.endpoint_prediction
         print('First prediction')
-        print(self.prediction)
+        print(self.endpoint_prediction)
         self.next(self.end)
 
     @step

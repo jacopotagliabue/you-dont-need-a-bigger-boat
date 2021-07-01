@@ -17,12 +17,7 @@ from prefect.tasks.great_expectations import RunGreatExpectationsValidation
 assert os.getenv('PREFECT__CLOUD__AUTH_TOKEN') is not None
 
 # Define GE Task
-validation_task = RunGreatExpectationsValidation(log_stdout=True)
-
-# Define checkout task
-@task
-def validation_checkpoint():
-    return "ok"
+validation_task = RunGreatExpectationsValidation(task_run_name="DataValidationTask")
 
 # Define the dbt task
 dbt_task = DbtShellTask(
@@ -34,12 +29,16 @@ dbt_task = DbtShellTask(
            'threads': 1,
            'account': os.getenv('SNOWFLAKE_ACCOUNT')
        },
-       helper_script="cd sigir_dbt"
+       helper_script="cd sigir_dbt",
+       task_run_name="DataPreparationTask"
     )
 
 # Define the metflow task
 dir_path = os.path.dirname(os.path.realpath(__file__))
-metaflow_task = ShellTask(helper_script=f"cd {dir_path}")
+metaflow_task = ShellTask(helper_script=f"cd {dir_path}", task_run_name="TrainingTask")
+
+
+serverless_task = ShellTask(helper_script=f"cd {dir_path}/serverless && nvm use stable", task_run_name="DeploymentTask")
 
 # instantiate schedule
 # schedule = IntervalSchedule(interval=timedelta(minutes=60))
@@ -50,23 +49,22 @@ with Flow("AndrewTestFlow") as flow:
     validation_output_content_flattened = validation_task(
        batch_kwargs={'data_asset_name': 'public.content_flattened', 'datasource': 'sigir_2021', 'schema': 'public', 'table': 'content_flattened'},
        expectation_suite_name="public.content_flattened.warning",
-       context_root_dir=f"{pathlib.Path(__file__).parent.absolute()}/great_expectations",
-        log_stdout=True
+       context_root_dir=f"{pathlib.Path(__file__).parent.absolute()}/great_expectations"
     ).set_dependencies(upstream_tasks=[dbt_output])
 
     validation_output_sessions_stats = validation_task(
         batch_kwargs={'table': 'session_stats', 'schema': 'public', 'data_asset_name': 'public.session_stats', 'datasource': 'sigir_2021'},
         expectation_suite_name="public.session_stats",
-        context_root_dir=f"{pathlib.Path(__file__).parent.absolute()}/great_expectations",
-        log_stdout=True
+        context_root_dir=f"{pathlib.Path(__file__).parent.absolute()}/great_expectations"
     ).set_dependencies(upstream_tasks=[dbt_output])
 
-    validation_checkpoint_ok = validation_checkpoint().set_dependencies(upstream_tasks=[validation_output_content_flattened,
-                                                                                        validation_output_sessions_stats])
     #Launch metaflow
-    metaflow_task(command='METAFLOW_PROFILE=metaflow AWS_PROFILE=metaflow python metaflow/cart_baseline_flow.py --no-pylint run',
-                  log_stdout=True).set_dependencies(upstream_tasks=[validation_checkpoint_ok])
+    metaflow_output = metaflow_task(
+        command='METAFLOW_PROFILE=metaflow AWS_PROFILE=metaflow python metaflow/cart_baseline_flow.py --no-pylint run').set_dependencies(
+        upstream_tasks=[validation_output_content_flattened, validation_output_sessions_stats])
 
+    #Deploy Trained Model
+    serverless_task(command="severless deploy --aws-profile serverless").set_dependencies(upstream_tasks=[metaflow_output])
 
 flow.register(project_name=os.getenv('PREFECT_PROJECT_NAME'))
 flow.run_agent() #token=os.getenv('PREFECT_AGENT_KEY'))
