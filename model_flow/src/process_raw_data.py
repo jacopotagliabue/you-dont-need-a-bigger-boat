@@ -34,11 +34,12 @@ def process_search_train(search_train_path):
 def process_browsing_train(browsing_train_path):
     print('Processing {}'.format(browsing_train_path))
 
-    # 30M seems to exceed some memory limit
-    df = pd.read_parquet(browsing_train_path, engine='pyarrow').head(10000000)
+    # 30M seems to exceed some memory limit; take 1M rows for now
+    df = pd.read_parquet(browsing_train_path, engine='pyarrow').head(1000000)
 
     # select important columns only
     df = df[['session_id_hash', 'event_type', 'product_action', 'server_timestamp_epoch_ms']]
+    df['product_action'].fillna(value='',inplace=True)
     print(df.shape)
     df = cudf.DataFrame.from_pandas(df)
 

@@ -40,5 +40,5 @@ if __name__ == '__main__':
     # for now, upload some rows
     # there is no versioning whatsoever at this stage
     upload_file_as_parquet(SKU_TO_CONTENT_PATH, TARGET_S3_PATH)
-    # upload_file_as_parquet(BROWSING_TRAIN_PATH, TARGET_S3_PATH)
+    upload_file_as_parquet(BROWSING_TRAIN_PATH, TARGET_S3_PATH)
     upload_file_as_parquet(SEARCH_TRAIN_PATH, TARGET_S3_PATH)
