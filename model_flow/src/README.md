@@ -21,6 +21,12 @@
 ### Running Metaflow
 
 - Execute from the directory `model_flow`
-- Due to Great Expectations, `--no-pylint` flag is required.
+- Due to Great Expectations, `--no-pylint` flag is required
+- `python src/cart_baseline_flow.py --no-pylint run --max-workers 8`
 
 ### Running Serverless
+
+- `cd` into serverless folder
+-  Run `serverless deploy --sagemaker <SAGEMAKER_ENDPOINT_NAME>` in command line
+- `SAGE_MAKER_ENDPOINT_NAME` is obtained from output of `deploy` step in Metaflow
+- Test endpoint by passing in events as a string : `sssession=add,cart,view,remove`

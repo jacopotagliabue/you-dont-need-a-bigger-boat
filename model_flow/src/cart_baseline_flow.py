@@ -210,6 +210,8 @@ class CartFlow(FlowSpec):
         import numpy as np
         import tarfile
         import time
+        import os
+        import shutil
 
         # generate a signature for the endpoint using timestamp
         self.endpoint_name = 'intent-{}-endpoint'.format(int(round(time.time() * 1000)))
@@ -237,6 +239,9 @@ class CartFlow(FlowSpec):
                 print("Model saved at: {}".format(url))
                 # save this path for downstream reference!
                 self.model_s3_path = url
+
+        os.remove(local_tar_name)
+        shutil.rmtree(model_name.split('/')[0])
 
         # create sagemaker tf model
         model = TensorFlowModel(
