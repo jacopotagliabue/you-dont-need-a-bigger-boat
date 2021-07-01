@@ -4,17 +4,20 @@ import cudf
 
 
 def process_raw_data(search_train_path, browsing_train_path, sku_to_content_path):
+    """
+    Entry point for data transformation with rapids/pandas
 
+    :param search_train_path:
+    :param browsing_train_path:
+    :param sku_to_content_path:
+    :return:
+    """
     # process raw_data
     df_search_train = process_search_train(search_train_path)
     df_browsing_train = process_browsing_train(browsing_train_path)
     df_sku_to_content = process_sku_to_content(sku_to_content_path)
 
-    # further processing steps
-
-
-    # reutrn dict of processed data with name
-
+    # reutrn dict of processed data with name, only browsing_train for now
     return {'browsing_train' : df_browsing_train}
 
 def process_search_train(search_train_path):
@@ -30,7 +33,12 @@ def process_search_train(search_train_path):
 
 def process_browsing_train(browsing_train_path):
     print('Processing {}'.format(browsing_train_path))
-    df = pd.read_parquet(browsing_train_path, engine='pyarrow').head(100000)
+
+    # 30M seems to exceed some memory limit
+    df = pd.read_parquet(browsing_train_path, engine='pyarrow').head(10000000)
+
+    # select important columns only
+    df = df[['session_id_hash', 'event_type', 'product_action', 'server_timestamp_epoch_ms']]
     print(df.shape)
     df = cudf.DataFrame.from_pandas(df)
 
@@ -41,15 +49,12 @@ def process_browsing_train(browsing_train_path):
 
     # sort according to session_id_hash and timestamp
     df = df.sort_values(by=['session_id_hash', 'server_timestamp_epoch_ms'])
-    df = df.reset_index()
+    df = df.reset_index(drop=True)
 
     # check sorting
     print(df[['session_id_hash','server_timestamp_epoch_ms']].head(10))
     print('\n')
 
-    # select important columns only
-    df = df[['session_id_hash', 'event_type', 'product_action', 'server_timestamp_epoch_ms']]
-    df = df.head(10000000)
     return df.to_pandas()
 
 def process_sku_to_content(sku_to_content_path):
