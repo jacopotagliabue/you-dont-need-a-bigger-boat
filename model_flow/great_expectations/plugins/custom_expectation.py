@@ -5,6 +5,10 @@ from great_expectations.core.expectation_configuration import  ExpectationConfig
 from typing import Optional, Dict
 
 class ExpectAverageSessionLengthToBeBetween(ColumnExpectation):
+    """
+    Custom expectation to compute average session length
+    """
+
     # Setting necessary computation metric dependencies and defining kwargs, as well as assigning kwargs default values
     metric_dependencies = ("column.value_counts",)
     success_keys = ("min_value", "strict_min", "max_value", "strict_max")
@@ -56,7 +60,9 @@ class ExpectAverageSessionLengthToBeBetween(ColumnExpectation):
        runtime_configuration: dict = None,
        execution_engine: ExecutionEngine = None,
     ):
-        """Validates the given data against the set minimum and maximum value thresholds for the column max"""
+        """
+        Validates the given data against the set minimum and maximum value thresholds for session length
+        """
 
         column_value_counts = metrics["column.value_counts"]
         avg_counts = column_value_counts.mean()
