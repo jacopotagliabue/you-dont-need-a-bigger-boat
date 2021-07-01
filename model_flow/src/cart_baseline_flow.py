@@ -125,16 +125,15 @@ class CartFlow(FlowSpec):
 
     @step
     def get_model_config(self):
-        '''
+        """
         Get model hyper-params;
         It is possible in this step perform a for-each to parallel run over a range of hyper params;
-        '''
+        """
         from utils import return_json_file_content
 
         # read just a single configuration
         self.config = return_json_file_content(os.getenv('MODEL_CONFIG_PATH'))
         self.next(self.train_model)
-
 
 
     # @batch decorator used to run step on AWS Batch
@@ -151,7 +150,7 @@ class CartFlow(FlowSpec):
     @step
     def train_model(self):
         """
-        Train a regression model on the random dataset, on GPU.
+        Train a intention prediction model on GPU.
         """
         import wandb
         from model import train_lstm_model
@@ -187,19 +186,20 @@ class CartFlow(FlowSpec):
         import tarfile
         import time
 
-        # generate a signature for the endpoint, using learning rate and timestamp as a convention
-        ENDPOINT_NAME = 'intent-{}-endpoint'.format(int(round(time.time() * 1000)))
-        # print out the name, so that we can use it when deploying our lambda
-        print("\n\n================\nEndpoint name is: {}\n\n".format(ENDPOINT_NAME))
+        # generate a signature for the endpoint using timestamp
+        self.endpoint_name = 'intent-{}-endpoint'.format(int(round(time.time() * 1000)))
 
+        # print out the name, so that we can use it when deploying our lambda
+        print("\n\n================\nEndpoint name is: {}\n\n".format(self.endpoint_name))
+
+        # load model from artifacts
         tf_model = model_from_json(self.model)
         tf_model.set_weights(self.model_weights)
 
         model_name = "intent-model-{}/1".format(current.run_id)
         local_tar_name = 'model-{}.tar.gz'.format(current.run_id)
 
-
-
+        # save model to push to S3
         tf_model.save(filepath=model_name)
         with tarfile.open(local_tar_name, mode="w:gz") as _tar:
             _tar.add(model_name, recursive=True)
@@ -213,27 +213,26 @@ class CartFlow(FlowSpec):
                 # save this path for downstream reference!
                 self.model_s3_path = url
 
-        #remove local files
+        # create sagemaker tf model
         model = TensorFlowModel(
             model_data=self.model_s3_path,
             image_uri=os.getenv('DOCKER_IMAGE_URI'),
             role=os.getenv('IAM_SAGEMAKER_ROLE'))
 
+        # deploy sagemaker model
         predictor = model.deploy(
             initial_instance_count=1,
             instance_type=os.getenv('SAGEMAKER_INSTANCE'),
-            endpoint_name=ENDPOINT_NAME)
+            endpoint_name=self.endpoint_name)
 
         # prepare a test input
         test_inp = {'instances' : tf.one_hot(np.array([[0,1,1,3,4,5]]),
                                              on_value=1,
                                              off_value=0,
                                              depth=7).numpy() }
-
         result = predictor.predict(test_inp)
         print(test_inp, result)
         assert result['predictions'][0][0] > 0
-
 
         self.next(self.end)
 
