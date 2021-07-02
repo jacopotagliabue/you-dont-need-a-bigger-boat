@@ -2,11 +2,59 @@
 An end-to-end (Metaflow-based) implementation of an intent prediction flow for kids who can't MLOps 
 good and [wanna learn to do other stuff good too](https://www.youtube.com/watch?v=NQ-8IuUkJJc). 
 
-## Overview
-WIP
+This is a WIP - check back often for updates.
 
-## Repo structure
-WIP
+## Philosophical Motivations
+There is plenty of tutorials and blog posts around the Internet on data pipelines and tooling. However:
+
+* they (for good pedagogical reasons) tend to focus on _one_ tool / step at a time, leaving us to wonder how 
+the rest of the pipeline works;
+* they (for good pedagogical reasons) tend to work in a toy-world fashion, leaving us to wonder what would happen
+when a real dataset and a real-world problem enter the scene.
+
+This repository (and soon-to-be-drafted written tutorial) aims to fill these gaps. In particular:
+
+* we provide open-source working code that glues together what we believe are some of the best tools in the ecosystem,
+going  _all the way_ from raw data to a deployed endpoint serving predictions;
+* we run the pipeline under a realistic load for companies at "[reasonable scale](https://lnkd.in/e2yTyVk)", leveraging
+a huge [open dataset](https://arxiv.org/abs/2104.09423) we released in 2021; moreover, we train a model for a real-world 
+use case, and show how to monitor it after deployment.
+
+The repo may also be seen as a (very opinionated) introduction to modern, PaaS-like pipelines; while there is obviously
+room for disagreement over tool X or tool Y, we believe the general principles to be sound for companies at 
+"reasonable scale": in-between bare-bone infrastructure for Tech Giants, and ready-made solutions for low-code/simple 
+scenarios, there is a world of exciting machine learning at scale for sophisticated practitioners who don't want to 
+waste their time managing cloud resources.
+
+## Overview
+The repo shows how several (mostly open-source) tools can be effectively combined together to run data pipelines. The 
+project current features:
+
+* [Metaflow](https://metaflow.org/) for ML DAGs (Alternatives: Luigi (?))
+* Snowflake as a data warehouse solution (Alternatives: Redshift, Big Query)
+* Prefect as a general orchestrator (Alternatives: Airflow)
+* dbt for data transformation (Alternatives: ?)
+* Great Expectations for data quality (Alternatives: dbt plugin)
+* Weights&Biases for experiment tracking (Alternatives: Comet)
+* Gantry for ML monitoring (Alternatives: Aporia)
+* AWS Sagemaker / AWS lambda for model serving (Alternatives: many)
+
+Note: we plan on adding a feature store in the next iteration, as well as providing an orchestrator-free version, 
+by using step functions on AWS to manage the steps.
+
+We provide _two versions_ of the pipeline, depending on the sophistication of the setup:
+
+* a _Metaflow-only_ version, which runs from static data files (see below) to Sagemaker as a single Flow, and can be run
+from a Metaflow-enabled laptop without much additional setup;
+* a _data warehouse_ version, which runs in a more realistic setup, reading data from Snowflake and using an external
+orchestrator to run the steps. In this setup, the downside is that a Snowflake and a Prefect Cloud accounts are required 
+(nonetheless, both are veasy to get); the upside is that the pipeline reflects almost perfectly a real setup, and Metaflow
+can be used specifically for the ML part of the process.
+
+The parallelism between the two scenarios should be pretty clear by looking at the two projects: if you are familiarizing with
+all the tools for the first time, we suggest you to start from the _Metaflow_ version and then move to the full-scale one
+when all the pieces of the puzzle are well understood.
+
 
 ## How to run the code
 WIP
