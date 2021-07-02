@@ -1,6 +1,6 @@
 # Welcome to your remote flow.
 
-## #Overview
+## Overview
 
 We used Prefect to orchestrate the different stage of the end-to-end process. Prefect will construct a run a DAG
 comprised of: 
