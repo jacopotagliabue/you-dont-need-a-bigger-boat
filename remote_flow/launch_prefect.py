@@ -38,7 +38,7 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 metaflow_task = ShellTask(helper_script=f"cd {dir_path}", task_run_name="TrainingTask")
 
 
-serverless_task = ShellTask(helper_script=f"cd {dir_path}/serverless && nvm use stable", task_run_name="DeploymentTask")
+serverless_task = ShellTask(helper_script=f"cd {dir_path}/serverless", task_run_name="DeploymentTask")
 
 # instantiate schedule
 # schedule = IntervalSchedule(interval=timedelta(minutes=60))
@@ -58,13 +58,13 @@ with Flow("AndrewTestFlow") as flow:
         context_root_dir=f"{pathlib.Path(__file__).parent.absolute()}/great_expectations"
     ).set_dependencies(upstream_tasks=[dbt_output])
 
-    #Launch metaflow
+    # Launch metaflow
     metaflow_output = metaflow_task(
         command='METAFLOW_PROFILE=metaflow AWS_PROFILE=metaflow python metaflow/cart_baseline_flow.py --no-pylint run').set_dependencies(
         upstream_tasks=[validation_output_content_flattened, validation_output_sessions_stats])
 
-    #Deploy Trained Model
-    serverless_task(command="severless deploy --aws-profile serverless").set_dependencies(upstream_tasks=[metaflow_output])
+    # Deploy Trained Model
+    serverless_task(command="serverless deploy --aws-profile serverless").set_dependencies(upstream_tasks=[metaflow_output])
 
 flow.register(project_name=os.getenv('PREFECT_PROJECT_NAME'))
 flow.run_agent() #token=os.getenv('PREFECT_AGENT_KEY'))
