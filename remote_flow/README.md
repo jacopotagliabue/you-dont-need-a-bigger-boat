@@ -1,6 +1,6 @@
-#Welcome to your remote flow.
+# Welcome to your remote flow.
 
-###Overview
+## #Overview
 
 We used Prefect to orchestrate the different stage of the end-to-end process. Prefect will construct a run a DAG
 comprised of: 
@@ -11,14 +11,14 @@ comprised of:
 
 ![picture alt](resources/PrefectFlowSchematic.png "Prefect Flow")
 
-####1. Data preparation
+#### 1. Data preparation
 
 Data preparation is done via DBT. We assume you have a Snowflake DB configure and preloaded with some sample 
 raw data (see [Loading the data](#loading-the-data)). 
 This step is in charge of most data processing. The goal is to produce a usable dataset that can be loaded in 
 memory for training. We create views and tables which will then be validated in the next step.
 
-####2. Data validation
+#### 2. Data validation
 
 It's important to validate that the data we've prepared in our previous step follows a set of hypothesis required
 for training a model. For example, this step can be used to make sure we have no duplicate events or empty sessions
@@ -29,7 +29,7 @@ will be updated with the latest data. For this reason, constant validation is re
 
 We use Great Expectation to create Expectations which are sets of validation we can run on the data.
 
-####3. Model training
+#### 3. Model training
 
 Once the data has been validated, we can launch the training step. For this step we use Metaflow. Metaflow will create its own
 DAG for the training procedure and allow us to specify different compute resources to each task. This is extremely helpful as it
@@ -48,24 +48,24 @@ early detection of data or model drift and accurate tracking of performance metr
 
 At this step the model is deployed as a SageMaker endpoint, this acts as our model registry. 
 
-####4. Model deployment
+#### 4. Model deployment
 
 To expose the newly trained SageMaker endpoint to the world, we create a lambda which will format and route a request to our SageMaker endpoint. 
 We so so through the use of serverless.
 
 
-###Setup
+### Setup
 
 Now that we have seen the individual pieces, let's set this up!
 
 This setup assumes you are running everything from the `remote_flow` folder. 
 
-####General management of secrets
+#### General management of secrets
 
 This project manages secrets by placing them in a .env file under the `remote_flow` directory and loading
 them with the `dotenv` package.  There is a sample file named `.env.local` you can use as a template. 
 
-####Creating a python virtual env and installing the dependencies
+#### Creating a python virtual env and installing the dependencies
 
 ```
 python -m venv remote-flow-env
@@ -83,7 +83,7 @@ pip install -r requirements.txt
 **Note:** This uses the pip installation for dbt. [Official doc](https://docs.getdbt.com/dbt-cli/installation)
 
 
-####Loading the data
+#### Loading the data
 
 The project uses the open dataset from the [2021 Coveo Data Challenge](https://github.com/coveooss/SIGIR-ecom-data-challenge).
 Data is freely available under a research-friendly license.
@@ -103,7 +103,7 @@ eat up all your memory.
 
 This preparation step also requires the SNOWFLAKE variables set [below](access-to-snowflake). 
 
-####Metaflow
+#### Metaflow
 
 Please refer to the [setup instructions](../README.md) at the root level of this repository.
 
@@ -119,7 +119,7 @@ SAGEMAKER_ENDPOINT_NAME=
 **Important: You need to have an aws profile named `metaflow` which has the required permissions.**
 
 
-####Access to Snowflake
+#### Access to Snowflake
 
 You will need a snowflake database. The flow has a preparatory step which will upload session
 like data to this database. To set up snowflake you can follow their [Getting Started guide](https://docs.snowflake.com/en/user-guide-getting-started.html).
@@ -211,10 +211,10 @@ You final `.env` should match [.env.local](./.env.local) with all empty values f
 
 You should also have a [settings.ini](./serverless/settings.ini) file. 
 
-###Launching
+### Launching
 
 
-####1. Data upload
+#### 1. Data upload
 
 From the `remote_flow` directory. Run the following python script:
 
@@ -225,7 +225,7 @@ python metaflow/data_processing/push_data_to_sf.py
 This will read the data from your `LOCAL_DATA_PATH` and push it to the `SNOWFLAKE_SCHEMA_SOURCE` schema after
 transforming the data to make it look like raw server side logging data. 
 
-####2. The whole #!
+#### 2. The whole #!
 Once everything is setup and your raw data has been uploaded, you can run 
 ```
 python launch_prefect.py
@@ -241,7 +241,7 @@ flow.run_agent() -> flow.run()
 ```
 on the last line of `launch_prefect.py`.
 
-####3. Testing the endpoint
+#### 3. Testing the endpoint
 
 
 Once the flow has successfully completed you can query your endpoint as follows:
