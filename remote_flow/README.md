@@ -51,7 +51,7 @@ At this step the model is deployed as a SageMaker endpoint, this acts as our mod
 #### 4. Model deployment
 
 To expose the newly trained SageMaker endpoint to the world, we create a lambda which will format and route a request to our SageMaker endpoint. 
-We so so through the use of serverless.
+We do so through the use of serverless.
 
 
 ### Setup
@@ -107,7 +107,7 @@ This preparation step also requires the SNOWFLAKE variables set [below](access-t
 
 Please refer to the [setup instructions](../README.md) at the root level of this repository.
 
-Additionally you will want to make sure that these values are properly set:
+Additionally, you will want to make sure that these values are properly set:
 ```
 # Metaflow variables
 MODEL_CONFIG_PATH=config.json  # no need to change this
@@ -124,6 +124,8 @@ SAGEMAKER_ENDPOINT_NAME=
 You will need a snowflake database. The flow has a preparatory step which will upload session
 like data to this database. To set up snowflake you can follow their [Getting Started guide](https://docs.snowflake.com/en/user-guide-getting-started.html).
 
+Create a database called `SIGIR_2021`.
+
 Once you have setup snowflake you need to add the following:
 ```
 # Snowflake variables
@@ -132,7 +134,7 @@ SNOWFLAKE_PWD=
 SNOWFLAKE_ACCOUNT=
 SNOWFLAKE_ROLE=
 SNOWFLAKE_WAREHOUSE=
-SNOWFLAKE_DB=
+SNOWFLAKE_DB='SIGIR_2021'  # changing this to another value will require you to reconfigure your expectations in GE
 SNOWFLAKE_SCHEMA_SOURCE='SIGIR_2021_DEMO'  # Feel free to change this value if you want your raw data uploaded to another schema
 SNOWFLAKE_SCHEMA_TARGET='PUBLIC'  # changing this to another value will require you to reconfigure your expectations in GE
 ```
@@ -183,7 +185,7 @@ WIP
 Make sure you have a user which can deploy a SageMaker endpoint. This is used during the Metaflow step.
 ```
 #SageMaker variables
-SAGEMAKER_ENDPOINT_NAME=  # Need to update this. Don't pick a long name here
+SAGEMAKER_ENDPOINT_NAME=  # Don't pick a long name here. Make sure it matches serverless/serverless.yml.
 SAGE_USER=
 SAGE_SECRET=
 SAGE_REGION=
@@ -198,7 +200,7 @@ must be pointing towards the node version which has the `serverless` installatio
 `127` which most likely means serverless command wasn't found. 
 
 
-You will also need to update 2 other files"
+You will also need to update 2 other files:
 * [serverless.yml](./serverless/serverless.yml) and match your service name to your aws permissions,
 Pick a short service name as serverless may truncate it if it is too long.
 * create a `settings.ini` in the serverless folder based off [settings.ini.template](./serverless/settings.ini.template). 
