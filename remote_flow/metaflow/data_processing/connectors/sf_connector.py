@@ -2,6 +2,7 @@
 import os
 
 import snowflake.connector
+from snowflake.connector import DictCursor
 
 
 class SFSelfClosingNamespaceConnection:
@@ -48,6 +49,7 @@ class SFSelfClosingNamespaceConnection:
             account=os.getenv('SNOWFLAKE_ACCOUNT')
         )
         self._cs = self._ctx.cursor()
+        self._d_cs = self._ctx.cursor(DictCursor)
         self._cs.execute(f"USE WAREHOUSE {self._warehouse}")
         self._cs.execute(f"USE DATABASE {self._database}")
         self._cs.execute(f"CREATE SCHEMA IF NOT EXISTS {self._schema}")
@@ -56,6 +58,7 @@ class SFSelfClosingNamespaceConnection:
 
     def __exit__(self, exception_type, exception_value, traceback):
         self._cs.close()
+        self._d_cs.close()
         self._ctx.close()
 
     def execute(self, command):
@@ -73,3 +76,6 @@ class SFSelfClosingNamespaceConnection:
         self._cs.execute(f"PUT file://{absolute_file_path} @%{table}")
         self._cs.execute(f"COPY INTO {table} "
                          "FILE_FORMAT = ESCAPED_DQ")
+
+    def dict_get_all(self):
+        return self._d_cs.execute('select events from cart_sessions').fetchall()

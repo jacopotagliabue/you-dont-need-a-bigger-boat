@@ -1,0 +1,20 @@
+frameworkVersion: ">=1.24.1"
+
+service: metaflow-intent-remote-endpoint
+
+provider:
+  name: aws
+  runtime: python3.7
+  stage: dev
+  region: us-west-2
+
+
+functions:
+  prediction_api:
+    environment:
+      SAGEMAKER_ENDPOINT_NAME: metaflow-intent-remote-endpoint
+    handler: handler.predict
+    events:
+      - http:
+          path: predict
+          method: get

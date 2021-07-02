@@ -67,7 +67,7 @@ if __name__ == "__main__":
     config_max_batches = float(os.getenv("MAX_BATCHES", 'inf'))
     warehouse = os.getenv("SNOWFLAKE_WAREHOUSE")
     database = os.getenv("SNOWFLAKE_DB")
-    schema = os.getenv("SNOWFLAKE_SCHEMA")
+    schema = os.getenv("SNOWFLAKE_SCHEMA_SOURCE")
 
     browsing_train = f"{data_path}/browsing_train.csv"
     search_train = f"{data_path}/search_train.csv"
