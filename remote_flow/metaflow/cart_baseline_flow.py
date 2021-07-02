@@ -102,9 +102,10 @@ class CartFlow(FlowSpec):
 
         assert os.getenv('WANDB_API_KEY')
         assert os.getenv('WANDB_ENTITY')
+        assert os.getenv('WANDB_PROJECT')
 
         wandb.init(entity=os.getenv('WANDB_ENTITY'),
-                   project="cart-abandonment",
+                   project=os.getenv('WANDB_PROJECT'),
                    id=current.run_id,
                    config=self.config,
                    resume='allow',

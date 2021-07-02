@@ -2,15 +2,13 @@ import os
 
 from dotenv import load_dotenv
 
-# load envs
+# load envs must be done before importing Prefect!
 load_dotenv(verbose=True, dotenv_path='.env')
 from prefect.tasks.dbt import DbtShellTask
 from prefect.tasks.shell import ShellTask
-from datetime import timedelta
-from prefect.schedules import IntervalSchedule
 import pathlib
 
-from prefect import task, Flow
+from prefect import Flow
 from prefect.tasks.great_expectations import RunGreatExpectationsValidation
 
 # make sure we have prefect token in the env
@@ -33,27 +31,29 @@ dbt_task = DbtShellTask(
        task_run_name="DataPreparationTask"
     )
 
-# Define the metflow task
+# Define the metaflow task
 dir_path = os.path.dirname(os.path.realpath(__file__))
 metaflow_task = ShellTask(helper_script=f"cd {dir_path}", task_run_name="TrainingTask")
 
 
 serverless_task = ShellTask(helper_script=f"cd {dir_path}/serverless", task_run_name="DeploymentTask")
 
-# instantiate schedule
-# schedule = IntervalSchedule(interval=timedelta(minutes=60))
-with Flow("AndrewTestFlow") as flow:
+flow_name = os.getenv('PREFECT_FLOW_NAME')
+
+with Flow(flow_name) as flow:
     # Prepare data with dbt
     dbt_output = dbt_task(command='dbt run')
     # Run GE validation tasks
+    database = os.getenv('SNOWFLAKE_DB').lower()
+    schema = os.getenv('SNOWFLAKE_SCHEMA_TARGET').lower()
     validation_output_content_flattened = validation_task(
-       batch_kwargs={'data_asset_name': 'public.content_flattened', 'datasource': 'sigir_2021', 'schema': 'public', 'table': 'content_flattened'},
+       batch_kwargs={'data_asset_name': 'public.content_flattened', 'datasource': database, 'schema': schema, 'table': 'content_flattened'},
        expectation_suite_name="public.content_flattened.warning",
        context_root_dir=f"{pathlib.Path(__file__).parent.absolute()}/great_expectations"
     ).set_dependencies(upstream_tasks=[dbt_output])
 
     validation_output_sessions_stats = validation_task(
-        batch_kwargs={'table': 'session_stats', 'schema': 'public', 'data_asset_name': 'public.session_stats', 'datasource': 'sigir_2021'},
+        batch_kwargs={'table': 'session_stats', 'schema': schema, 'data_asset_name': 'public.session_stats', 'datasource': database},
         expectation_suite_name="public.session_stats",
         context_root_dir=f"{pathlib.Path(__file__).parent.absolute()}/great_expectations"
     ).set_dependencies(upstream_tasks=[dbt_output])
@@ -67,5 +67,5 @@ with Flow("AndrewTestFlow") as flow:
     serverless_task(command="serverless deploy --aws-profile serverless").set_dependencies(upstream_tasks=[metaflow_output])
 
 flow.register(project_name=os.getenv('PREFECT_PROJECT_NAME'))
-flow.run_agent() #token=os.getenv('PREFECT_AGENT_KEY'))
+flow.run_agent()
 
