@@ -91,7 +91,7 @@ Please refer to the [setup instructions](../README.md) at the root level of this
 
 ####Access to Snowflake
 
-You will need a snowflake database. The flow has a preperatory step which will upload session
+You will need a snowflake database. The flow has a preparatory step which will upload session
 like data to this database. To set up snowflake you can follow their [Getting Started guide](https://docs.snowflake.com/en/user-guide-getting-started.html).
 
 Once you have setup snowflake you need to add the following:
@@ -157,3 +157,35 @@ BASE_IMAGE=
 EN_BATCH=
 SAGEMAKER_ENDPOINT_NAME=
 ```
+###Launching
+
+
+####1. Data upload
+
+
+####2. The whole #!
+Once everything is setup and your raw data has been uploaded, you can run 
+```
+python launch_prefect.py
+```
+from the `remote_flow` directory. This will launch a prefect agent. Connect then your [prefect cloud](https://www.prefect.io/),
+find your newly created flow and run it!
+
+##### Alternative without the prefect cloud UI
+
+If you do not want to go through the Prefect cloud UI, you can simply launch your flow directly by changing:
+```
+flow.run_agent() -> flow.run()
+```
+on the last line of `launch_prefect.py`.
+
+####3. Testing the endpoint
+
+
+Once the flow has successfully completed you can query your endpoint as follows:
+
+```
+https://<your-endpoint>/dev/predict?x=start,view,add,view,view,view,detail,view,end
+```
+
+
