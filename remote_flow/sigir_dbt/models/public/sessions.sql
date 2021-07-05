@@ -5,7 +5,7 @@
 {{ config(materialized='table') }}
 
 WITH
-    e AS (
+    event_table AS (
         SELECT
               session_id_hash
             , organization_id
@@ -27,7 +27,7 @@ WITH
         )
         GROUP BY session_id_hash, organization_id
     ),
-    s AS (
+    session_table AS (
         SELECT
               session_id_hash
             , start_time
@@ -37,6 +37,6 @@ WITH
     )
 
 SELECT *
-FROM e
-INNER JOIN s USING(session_id_hash)
+FROM event_table
+INNER JOIN session_table USING(session_id_hash)
 ORDER BY start_time ASC

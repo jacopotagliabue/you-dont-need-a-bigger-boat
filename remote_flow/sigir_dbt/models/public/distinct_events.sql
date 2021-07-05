@@ -5,7 +5,7 @@
 {{ config(materialized='table') }}
 
 WITH
-    l AS (
+    session_table AS (
         SELECT
                 session_id_hash
               , server_timestamp
@@ -24,7 +24,7 @@ WITH
             FROM {{ ref('browsing_flattened' ) }}
         )
     ),
-  r AS (
+  action_table AS (
     SELECT
           concat(session_id_hash, server_timestamp, event_type) AS temp_id
         , product_action
@@ -45,18 +45,5 @@ SELECT
         WHEN event_type='pageview' THEN 'pageview'
         ELSE product_action
     END AS normalized_action
-FROM l
-INNER JOIN r USING(temp_id)
-
--- SELECT
---       distinct session_id_hash
---     , server_timestamp
---     , organization_id
---     , product_action
---     , product_sku_hash
---     , hashed_url
---     , FIRST_VALUE(event_type) OVER (
---         PARTITION BY session_id_hash, organization_id, server_timestamp
---         ORDER BY event_type ASC
---     ) AS event_type
--- FROM {{ ref('browsing_flattened' ) }}
+FROM session_table
+INNER JOIN action_table USING(temp_id)
