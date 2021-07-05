@@ -63,7 +63,7 @@ This setup assumes you are running everything from the `remote_flow` folder.
 #### General management of secrets
 
 This project manages secrets by placing them in a .env file under the `remote_flow` directory and loading
-them with the `dotenv` package.  There is a sample file named `.env.local` you can use as a template.
+them with the `dotenv` package.  There is a sample file named `example.env` you can use as a template.
 
 #### Creating a python virtual env and installing the dependencies
 
@@ -194,24 +194,26 @@ SAGE_REGION=
 #### Serverless
 
 Install serverless following the [official doc](https://www.serverless.com/framework/docs/getting-started/).
+
 This setup was tested using the node installation via `npm`. If chose this installation make sure server less
 is installed on your default node version. Prefect will launch a shell task when running `serverless`, this shell
 must be pointing towards the node version which has the `serverless` installation. Otherwise the task will return
 `127` which most likely means serverless command wasn't found.
 
+Make sure you have a aws profile named `serverless` which can deploy a SageMaker endpoint. This is used during the Metaflow step.
 
-You will also need to update 2 other files:
-* [serverless.yml](./serverless/serverless.yml) and match your service name to your aws permissions,
-Pick a short service name as serverless may truncate it if it is too long.
-* create a `settings.ini` in the serverless folder based off [settings.ini.template](./serverless/settings.ini.template).
-This should use the same values you put in the AWS Sagemaker step.
+To keep a constant usage of env variables we opted for the `serverless-dotenv-plugin`, which you can install with this command:
+
+```
+npm i -D serverless-dotenv-plugin
+```
+
+Serverless is configured to read from the main `.env`. See `serverless.yml`.
 
 
 #### Final .env
 
-You final `.env` should match [.env.local](./.env.local) with all empty values filled.
-
-You should also have a [settings.ini](./serverless/settings.ini) file.
+You final `.env` should match [example.env](example.env) with all empty values filled.
 
 ### Launching
 
