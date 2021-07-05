@@ -16,33 +16,31 @@ Try running the following commands:
 
 ### Configuration for ~/.dbt/profiles.yml
 
-This configuration should be used in your profiles.yml to configure access to snowflake. 
+This configuration should be used in your profiles.yml to configure access to snowflake.
 dbt will load secrets from this local file when launching a step. The profiles are maped to models
 in the dbt_project.yml.
 
-    default:
-        outputs:
-            events:
-              type: snowflake
-              threads: 1
-              user: 
-              password: 
-              database: 
-              account: 
-              role: 
-              warehouse: 
-              schema:  #Use the source schema here.
-        
-            public:
-              type: snowflake
-              threads: 1
-              user: 
-              password: 
-              database: 
-              account: 
-              role: 
-              warehouse: 
-              schema: #Use the public schema here.
+	default:
+		outputs:
+			events:
+				type: snowflake
+				threads: 1
+				user:
+				password:
+				database:
+				account:
+				role:
+				warehouse:
+				schema: #Use the source schema here.
 
-    target: events 
-
+			public:
+				type: snowflake
+				threads: 1
+				user:
+				password:
+				database:
+				account:
+				role:
+				warehouse:
+				schema: #Use the public schema here.
+	target: events

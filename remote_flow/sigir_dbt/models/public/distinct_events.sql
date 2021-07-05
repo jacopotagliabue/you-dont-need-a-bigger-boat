@@ -1,34 +1,62 @@
 /*
  * Filters out the duplicate events an selects event_product over page_view
  */
+
 {{ config(materialized='table') }}
-with
-  l as (
-    select session_id_hash, server_timestamp, organization_id, event_type,
-    concat(session_id_hash, server_timestamp, event_type) as temp_id
-    from (
-      select distinct session_id_hash, server_timestamp, organization_id,
-        first_value(event_type) over (partition by session_id_hash, organization_id, server_timestamp order by event_type asc) as event_type
-        from {{ ref('browsing_flattened' ) }}
-      )
-  ),
-  r as (
-    select concat(session_id_hash, server_timestamp, event_type) as temp_id, product_action, product_sku_hash, hashed_url
-    from {{ ref('browsing_flattened' ) }}
+
+WITH
+    l AS (
+        SELECT
+                session_id_hash
+              , server_timestamp
+              , organization_id
+              , event_type
+              , CONCAT(session_id_hash, server_timestamp, event_type) AS temp_id
+        FROM (
+            SELECT DISTINCT
+                  session_id_hash
+                , server_timestamp
+                , organization_id
+                , FIRST_VALUE(event_type) OVER (
+                    PARTITION BY session_id_hash, organization_id, server_timestamp
+                    ORDER BY event_type ASC
+                ) AS event_type
+            FROM {{ ref('browsing_flattened' ) }}
+        )
+    ),
+  r AS (
+    SELECT
+          concat(session_id_hash, server_timestamp, event_type) AS temp_id
+        , product_action
+        , product_sku_hash
+        , hashed_url
+    FROM {{ ref('browsing_flattened' ) }}
   )
- select session_id_hash, server_timestamp, organization_id, event_type, product_action, product_sku_hash, hashed_url,
-    case
-        when event_type='pageview' then 'pageview'
-        else product_action
-    end as normalized_action
- from l inner join r using(temp_id)
 
+SELECT
+      session_id_hash
+    , server_timestamp
+    , organization_id
+    , event_type
+    , product_action
+    , product_sku_hash
+    , hashed_url
+    , CASE
+        WHEN event_type='pageview' THEN 'pageview'
+        ELSE product_action
+    END AS normalized_action
+FROM l
+INNER JOIN r USING(temp_id)
 
--- select distinct session_id_hash,
---        server_timestamp,
---        organization_id,
---        product_action,
---        product_sku_hash,
---        hashed_url,
---        first_value(event_type) over (partition by session_id_hash, organization_id, server_timestamp order by event_type asc) as event_type
--- from {{ ref('browsing_flattened' ) }}
+-- SELECT
+--       distinct session_id_hash
+--     , server_timestamp
+--     , organization_id
+--     , product_action
+--     , product_sku_hash
+--     , hashed_url
+--     , FIRST_VALUE(event_type) OVER (
+--         PARTITION BY session_id_hash, organization_id, server_timestamp
+--         ORDER BY event_type ASC
+--     ) AS event_type
+-- FROM {{ ref('browsing_flattened' ) }}

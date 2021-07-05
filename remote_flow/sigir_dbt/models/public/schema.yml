@@ -1,186 +1,185 @@
-
 version: 2
 
 models:
-    - name: browsing_flattened
-      description: "Browsing data with JSON column flattened."
-      columns:
-          - name: session_id_hash
-            description: "session id"
-            tests:
-                - not_null
-          - name: organization_id
-            description: "organization id"
-            tests:
-                - not_null
-          - name: server_timestamp
-            description: "time of the search"
-            tests:
-                - not_null
-          - name: event_type
-            description: "event_type"
-          - name: product_sku_hash
-            description: "product_sku_hash"
-          - name: hashed_url
-            description: "hashed url"
+  - name: browsing_flattened
+    description: "Browsing data with JSON column flattened."
+    columns:
+      - name: session_id_hash
+        description: "session id"
+        tests:
+            - not_null
+      - name: organization_id
+        description: "organization id"
+        tests:
+            - not_null
+      - name: server_timestamp
+        description: "time of the search"
+        tests:
+            - not_null
+      - name: event_type
+        description: "event_type"
+      - name: product_sku_hash
+        description: "product_sku_hash"
+      - name: hashed_url
+        description: "hashed url"
 
-    - name: search_flattened
-      description: "Search events with JSON column flattened."
-      columns:
-        - name: server_timestamp
-          description: "time of the search"
-          tests:
-            - not_null
-        - name: organization_id
-          description: "organization id"
-          tests:
-            - not_null
-        - name: query_string
-          description: "query string"
-        - name: product_sku_hash
-          description: "product_sku_hash"
-        - name: rank
-          description: "rank"
-        - name: query_vector
-          description: "query_vector"
+  - name: search_flattened
+    description: "Search events with JSON column flattened."
+    columns:
+      - name: server_timestamp
+        description: "time of the search"
+        tests:
+          - not_null
+      - name: organization_id
+        description: "organization id"
+        tests:
+          - not_null
+      - name: query_string
+        description: "query string"
+      - name: product_sku_hash
+        description: "product_sku_hash"
+      - name: rank
+        description: "rank"
+      - name: query_vector
+        description: "query_vector"
 
-    - name: content_flattened
-      description: "Raw content with JSON column flattened."
-      columns:
-        - name: product_sku_hash
-          description: "product_sku_hash"
-          tests:
-            - not_null
-        - name: ingestion_timestamp
-          description: "time stamp"
-          tests:
-            - not_null
-        - name: organization_id
-          description: "organization id"
-          tests:
-            - not_null
-        - name: item_vector
-          description: "item vector"
-        - name: image_vector
-          description: "image vector"
-        - name: price_bucket
-          description: "price bucket"
+  - name: content_flattened
+    description: "Raw content with JSON column flattened."
+    columns:
+      - name: product_sku_hash
+        description: "product_sku_hash"
+        tests:
+          - not_null
+      - name: ingestion_timestamp
+        description: "time stamp"
+        tests:
+          - not_null
+      - name: organization_id
+        description: "organization id"
+        tests:
+          - not_null
+      - name: item_vector
+        description: "item vector"
+      - name: image_vector
+        description: "image vector"
+      - name: price_bucket
+        description: "price bucket"
 
-    - name: distinct_events
-      description: "Browsing data with duplicates removed."
-      columns:
-        - name: session_id_hash
-          description: "session id"
-          tests:
-            - not_null
-        - name: organization_id
-          description: "organization id"
-          tests:
-            - not_null
-        - name: server_timestamp
-          description: "time of the search"
-          tests:
-            - not_null
-        - name: event_type
-          description: "event_type"
-        - name: normalized_action
-          description: "normalization of event_type and product action"
-          test:
-            - not_null
-        - name: product_sku_hash
-          description: "product_sku_hash"
-        - name: hashed_url
-          description: "hashed url"
+  - name: distinct_events
+    description: "Browsing data with duplicates removed."
+    columns:
+      - name: session_id_hash
+        description: "session id"
+        tests:
+          - not_null
+      - name: organization_id
+        description: "organization id"
+        tests:
+          - not_null
+      - name: server_timestamp
+        description: "time of the search"
+        tests:
+          - not_null
+      - name: event_type
+        description: "event_type"
+      - name: normalized_action
+        description: "normalization of event_type and product action"
+        test:
+          - not_null
+      - name: product_sku_hash
+        description: "product_sku_hash"
+      - name: hashed_url
+        description: "hashed url"
 
 
-    - name: session_stats
-      description: "Browsing data with duplicates removed."
-      columns:
-        - name: session_id_hash
-          description: "session id"
-          tests:
+  - name: session_stats
+    description: "Browsing data with duplicates removed."
+    columns:
+      - name: session_id_hash
+        description: "session id"
+        tests:
+          - not_null
+      - name: organization_id
+        description: "organization id"
+        tests:
+          - not_null
+      - name: start_time
+        description: "time of first session event"
+        tests:
+          - not_null
+      - name: end_time
+        description: "time of last session event"
+        tests:
             - not_null
-        - name: organization_id
-          description: "organization id"
-          tests:
+      - name: session_time
+        description: "seconds between first and last event"
+        tests:
             - not_null
-        - name: start_time
-          description: "time of first session event"
-          tests:
-            - not_null
-        - name: end_time
-          description: "time of last session event"
-          tests:
-              - not_null
-        - name: session_time
-          description: "seconds between first and last event"
-          tests:
-              - not_null
-        - name: session_action_count
-          description: "number of actions in a session"
-          tests:
-            - not_null
-        - name: add_action_count
-          description: "number of add actions"
-          tests:
-            - not_null
+      - name: session_action_count
+        description: "number of actions in a session"
+        tests:
+          - not_null
+      - name: add_action_count
+        description: "number of add actions"
+        tests:
+          - not_null
 
-    - name: sessions
-      description: "Events grouped by session"
-      columns:
-        - name: session_id_hash
-          description: "session id"
-          tests:
-            - not_null
-        - name: organization_id
-          description: "organization id"
-          tests:
-            - not_null
-        - name: start_time
-          description: "time of first session event"
-          tests:
-            - not_null
-        - name: events
-          description: "list of events in a session"
-          tests:
-            - not_null
-        - name: session_action_count
-          description: "number of events in a session"
-          tests:
-            - not_null
-        - name: session_action_count
-          description: "number of actions in a session"
-        - name: add_action_count
-          description: "number of add actions"
-          tests:
-            - not_null
+  - name: sessions
+    description: "Events grouped by session"
+    columns:
+      - name: session_id_hash
+        description: "session id"
+        tests:
+          - not_null
+      - name: organization_id
+        description: "organization id"
+        tests:
+          - not_null
+      - name: start_time
+        description: "time of first session event"
+        tests:
+          - not_null
+      - name: events
+        description: "list of events in a session"
+        tests:
+          - not_null
+      - name: session_action_count
+        description: "number of events in a session"
+        tests:
+          - not_null
+      - name: session_action_count
+        description: "number of actions in a session"
+      - name: add_action_count
+        description: "number of add actions"
+        tests:
+          - not_null
 
-    - name: cart_sessions
-      description: "Only sessions containing at least 1 add action."
-      columns:
-        - name: session_id_hash
-          description: "session id"
-          tests:
-            - not_null
-        - name: organization_id
-          description: "organization id"
-          tests:
-            - not_null
-        - name: start_time
-          description: "time of first session event"
-          tests:
-            - not_null
-        - name: events
-          description: "list of events in a session"
-          tests:
-            - not_null
-        - name: session_action_count
-          description: "number of events in a session"
-          tests:
-            - not_null
-        - name: session_action_count
-          description: "number of actions in a session"
-        - name: add_action_count
-          description: "number of add actions"
-          tests:
-            - not_null
+  - name: cart_sessions
+    description: "Only sessions containing at least 1 add action."
+    columns:
+      - name: session_id_hash
+        description: "session id"
+        tests:
+          - not_null
+      - name: organization_id
+        description: "organization id"
+        tests:
+          - not_null
+      - name: start_time
+        description: "time of first session event"
+        tests:
+          - not_null
+      - name: events
+        description: "list of events in a session"
+        tests:
+          - not_null
+      - name: session_action_count
+        description: "number of events in a session"
+        tests:
+          - not_null
+      - name: session_action_count
+        description: "number of actions in a session"
+      - name: add_action_count
+        description: "number of add actions"
+        tests:
+          - not_null

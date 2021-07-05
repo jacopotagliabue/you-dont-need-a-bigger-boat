@@ -1,13 +1,13 @@
 # metaflow-intent-prediction
-An end-to-end (Metaflow-based) implementation of an intent prediction flow for kids who can't MLOps 
-good and [wanna learn to do other stuff good too](https://www.youtube.com/watch?v=NQ-8IuUkJJc). 
+An end-to-end (Metaflow-based) implementation of an intent prediction flow for kids who can't MLOps
+good and [wanna learn to do other stuff good too](https://www.youtube.com/watch?v=NQ-8IuUkJJc).
 
 This is a WIP - check back often for updates.
 
 ## Philosophical Motivations
 There is plenty of tutorials and blog posts around the Internet on data pipelines and tooling. However:
 
-* they (for good pedagogical reasons) tend to focus on _one_ tool / step at a time, leaving us to wonder how 
+* they (for good pedagogical reasons) tend to focus on _one_ tool / step at a time, leaving us to wonder how
 the rest of the pipeline works;
 * they (for good pedagogical reasons) tend to work in a toy-world fashion, leaving us to wonder what would happen
 when a real dataset and a real-world problem enter the scene.
@@ -17,17 +17,17 @@ This repository (and soon-to-be-drafted written tutorial) aims to fill these gap
 * we provide open-source working code that glues together what we believe are some of the best tools in the ecosystem,
 going  _all the way_ from raw data to a deployed endpoint serving predictions;
 * we run the pipeline under a realistic load for companies at "[reasonable scale](https://lnkd.in/e2yTyVk)", leveraging
-a huge [open dataset](https://arxiv.org/abs/2104.09423) we released in 2021; moreover, we train a model for a real-world 
+a huge [open dataset](https://arxiv.org/abs/2104.09423) we released in 2021; moreover, we train a model for a real-world
 use case, and show how to monitor it after deployment.
 
 The repo may also be seen as a (very opinionated) introduction to modern, PaaS-like pipelines; while there is obviously
-room for disagreement over tool X or tool Y, we believe the general principles to be sound for companies at 
-"reasonable scale": in-between bare-bone infrastructure for Tech Giants, and ready-made solutions for low-code/simple 
-scenarios, there is a world of exciting machine learning at scale for sophisticated practitioners who don't want to 
+room for disagreement over tool X or tool Y, we believe the general principles to be sound for companies at
+"reasonable scale": in-between bare-bone infrastructure for Tech Giants, and ready-made solutions for low-code/simple
+scenarios, there is a world of exciting machine learning at scale for sophisticated practitioners who don't want to
 waste their time managing cloud resources.
 
 ## Overview
-The repo shows how several (mostly open-source) tools can be effectively combined together to run data pipelines. The 
+The repo shows how several (mostly open-source) tools can be effectively combined together to run data pipelines. The
 project current features:
 
 * [Metaflow](https://metaflow.org/) for ML DAGs (Alternatives: Luigi (?))
@@ -39,7 +39,7 @@ project current features:
 * Gantry for ML monitoring (Alternatives: Aporia)
 * AWS Sagemaker / AWS lambda for model serving (Alternatives: many)
 
-Note: we plan on adding a feature store in the next iteration, as well as providing an orchestrator-free version, 
+Note: we plan on adding a feature store in the next iteration, as well as providing an orchestrator-free version,
 by using step functions on AWS to manage the steps.
 
 We provide _two versions_ of the pipeline, depending on the sophistication of the setup:
@@ -47,7 +47,7 @@ We provide _two versions_ of the pipeline, depending on the sophistication of th
 * a _Metaflow-only_ version, which runs from static data files (see below) to Sagemaker as a single Flow, and can be run
 from a Metaflow-enabled laptop without much additional setup;
 * a _data warehouse_ version, which runs in a more realistic setup, reading data from Snowflake and using an external
-orchestrator to run the steps. In this setup, the downside is that a Snowflake and a Prefect Cloud accounts are required 
+orchestrator to run the steps. In this setup, the downside is that a Snowflake and a Prefect Cloud accounts are required
 (nonetheless, both are veasy to get); the upside is that the pipeline reflects almost perfectly a real setup, and Metaflow
 can be used specifically for the ML part of the process.
 
@@ -68,7 +68,7 @@ Data is freely available under a research-friendly license.
 
 #### Configure Metaflow
 
-If you have an AWS profile configured with a metaflow-friendly user, and you created 
+If you have an AWS profile configured with a metaflow-friendly user, and you created
 metaflow stack with CloudFormation, you can run the following command with the resources
 created by CloufFormation to set up metaflow on AWS:
 
@@ -84,19 +84,19 @@ custom profile created, you should do:
 ### Tips & Tricks
 
 1. Parallelism Safe Guard
-   - The flag `--max-workers` __should__ be used to limit the maximum number of parallel steps
-   - For example `METAFLOW_PROFILE=metaflow python flow_playground.py run --max-workers 8` limits
-     the maximum number of parallel tasks to 8
+	- The flag `--max-workers` __should__ be used to limit the maximum number of parallel steps
+	- For example `METAFLOW_PROFILE=metaflow python flow_playground.py run --max-workers 8` limits
+		the maximum number of parallel tasks to 8
 2. Environment Variables in AWS Batch
-   - The `@environment` decorator is used in conjunction with `@batch` to pass environment variables to
-     AWS Batch, which will not directly have access to env variables on your local machine
-   - In the basic `CartFlow` example, we use `@environemnt` to pass the Weights & Biases API Key (amongst other things)
+	- The `@environment` decorator is used in conjunction with `@batch` to pass environment variables to
+		AWS Batch, which will not directly have access to env variables on your local machine
+	- In the basic `CartFlow` example, we use `@environemnt` to pass the Weights & Biases API Key (amongst other things)
 3. Resuming Flows
-   - Resuming flows is useful during development to avoid re-running compute/time intensive steps
-     such as data preparation
-   - `METAFLOW_PROFILE=metaflow python flow_playground.py resume <STEP_NAME> --origin-run-id <RUN_ID>`
+	- Resuming flows is useful during development to avoid re-running compute/time intensive steps
+		such as data preparation
+	- `METAFLOW_PROFILE=metaflow python flow_playground.py resume <STEP_NAME> --origin-run-id <RUN_ID>`
 4. Local-Only execution
-   - It may sometimes be useful to debug locally (i.e to avoid Batch startup latency), we introduce a wrapper 
-     `enable_decorator` around the `@batch` decorator which enables or disables a decorator's functionality
-   - We use this in conjunction with an environment variable `EN_BATCH` to toggle the functionality
-    of __all__ `@batch` decorators.
+	- It may sometimes be useful to debug locally (i.e to avoid Batch startup latency), we introduce a wrapper
+		`enable_decorator` around the `@batch` decorator which enables or disables a decorator's functionality
+	- We use this in conjunction with an environment variable `EN_BATCH` to toggle the functionality
+		of __all__ `@batch` decorators.

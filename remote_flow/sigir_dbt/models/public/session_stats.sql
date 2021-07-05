@@ -2,11 +2,13 @@
  * Compute high level stats from sessions.
  */
 
-select session_id_hash, organization_id,
-min(server_timestamp) as start_time,
-max(server_timestamp) as end_time,
-timediff(second, start_time, end_time) as session_time,
-count(server_timestamp) as session_action_count,
-regexp_count(listagg(normalized_action), 'add') as add_action_count
-from {{ ref('distinct_events') }}
-group by session_id_hash, organization_id
+SELECT
+      session_id_hash
+    , organization_id
+    , MIN(server_timestamp) AS start_time
+    , MAX(server_timestamp) AS end_time
+    , timediff(second, start_time, end_time) AS session_time
+    , COUNT(server_timestamp) AS session_action_count
+    , REGEXP_COUNT(LISTAGG(normalized_action), 'add') AS add_action_count
+FROM {{ ref('distinct_events') }}
+GROUP BY session_id_hash, organization_id

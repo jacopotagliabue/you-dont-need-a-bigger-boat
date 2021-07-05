@@ -68,4 +68,3 @@ with Flow(flow_name) as flow:
 
 flow.register(project_name=os.getenv('PREFECT_PROJECT_NAME'))
 flow.run_agent()
-
