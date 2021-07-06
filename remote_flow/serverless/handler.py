@@ -1,21 +1,23 @@
 import boto3
 import json
-import configparser
 import time
 import os
 
-# read config file
-config = configparser.ConfigParser()
-config.read('settings.ini')
+try:
+    from dotenv import load_dotenv
+    load_dotenv('.env')
+except Exception as e:
+    print(e)
+
 # grab environment variables
-SAGEMAKER_ENDPOINT_NAME = config['sagemaker']['SAGEMAKER_ENDPOINT_NAME']
+SAGEMAKER_ENDPOINT_NAME = os.getenv('SAGEMAKER_ENDPOINT_NAME')
 # print to AWS for debug!
 print(SAGEMAKER_ENDPOINT_NAME)
 # instantiate AWS client for invoking sagemaker endpoint
 runtime = boto3.client('runtime.sagemaker',
-                       aws_access_key_id=config['sagemaker']['SAGE_USER'],
-                       aws_secret_access_key=config['sagemaker']['SAGE_SECRET'],
-                       region_name=config['sagemaker'].get('SAGE_REGION', 'us-west-2')
+                       aws_access_key_id=os.getenv('SAGE_USER'),
+                       aws_secret_access_key=os.getenv('SAGE_SECRET'),
+                       region_name=os.getenv('SAGE_REGION', 'us-west-2')
                        )
 
 

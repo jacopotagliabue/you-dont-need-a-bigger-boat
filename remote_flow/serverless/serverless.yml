@@ -2,6 +2,14 @@ frameworkVersion: ">=1.24.1"
 
 service: metaflow-intent-remote-endpoint
 
+plugins:
+  - serverless-dotenv-plugin
+
+custom:
+  dotenv:
+    # default: serverless project root
+    path: ../.env
+
 provider:
   name: aws
   runtime: python3.7
@@ -12,7 +20,11 @@ provider:
 functions:
   prediction_api:
     environment:
-      SAGEMAKER_ENDPOINT_NAME: metaflow-intent-remote-endpoint
+      SAGEMAKER_ENDPOINT_NAME: ${env:SAGEMAKER_ENDPOINT_NAME}
+      SAGE_USER: ${env:SAGE_USER}
+      SAGE_SECRET: ${env:SAGE_SECRET}
+      SAGE_REGION: ${env:SAGE_REGION}
+
     handler: handler.predict
     events:
       - http:
