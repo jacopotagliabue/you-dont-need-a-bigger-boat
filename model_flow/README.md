@@ -29,4 +29,4 @@
 - `cd` into serverless folder
 -  Run `serverless deploy --sagemaker <SAGEMAKER_ENDPOINT_NAME>` in command line
 - `SAGE_MAKER_ENDPOINT_NAME` is obtained from output of `deploy` step in Metaflow
-- Test endpoint by passing in events as a string : `sssession=add,cart,view,remove`
+- Test endpoint by passing in events as a string : `session=add,cart,view,remove`

@@ -23,7 +23,7 @@ def pip(libraries):
 
 def enable_decorator(dec, flag):
     try:
-        flag = bool(flag)
+        flag = bool(int(flag))
     except Exception as e:
         flag = False
         print(e)
