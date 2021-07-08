@@ -19,7 +19,12 @@ from metaflow import FlowSpec, step, batch, current, environment, Parameter, S3
 from custom_decorators import pip, enable_decorator
 
 class CartFlow(FlowSpec):
+      """
+      CartFlow is a DAG that, given a shopping session with an add-to-cart as input, predicts
+      whether or not the session is going to end with a purchase. The flow starts by reading data prepared by
+      dbt in Snowflake, and leverage GPUs for training and SageMaker for serving.
 
+      """
     # uri from: https://github.com/aws/deep-learning-containers/blob/master/available_images.md
     DOCKER_IMAGE_URI = Parameter(
         name='sagemaker_image',
