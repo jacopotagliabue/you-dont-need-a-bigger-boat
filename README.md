@@ -30,14 +30,14 @@ waste their time managing cloud resources.
 The repo shows how several (mostly open-source) tools can be effectively combined together to run data pipelines. The
 project current features:
 
-* [Metaflow](https://metaflow.org/) for ML DAGs (Alternatives: Luigi (?))
-* Snowflake as a data warehouse solution (Alternatives: Redshift, Big Query)
-* Prefect as a general orchestrator (Alternatives: Airflow)
-* dbt for data transformation (Alternatives: ?)
-* Great Expectations for data quality (Alternatives: dbt plugin)
-* Weights&Biases for experiment tracking (Alternatives: Comet)
-* Gantry for ML monitoring (Alternatives: Aporia)
-* AWS Sagemaker / AWS lambda for model serving (Alternatives: many)
+* [Metaflow](https://metaflow.org/) for ML DAGs (Alternatives: [Luigi](https://github.com/spotify/luigi) (?))
+* [Snowflake](https://www.snowflake.com/) as a data warehouse solution (Alternatives: [Redshift](https://aws.amazon.com/redshift/))
+* [Prefect](https://www.prefect.io/) as a general orchestrator (Alternatives: [Airflow](https://airflow.apache.org))
+* [dbt](https://www.getdbt.com) for data transformation (Alternatives: ?)
+* [Great Expectations](https://greatexpectations.io/) for data quality (Alternatives: [dbt-expectations plugin](https://github.com/calogica/dbt-expectations))
+* [Weights&Biases](https://wandb.ai/site) for experiment tracking (Alternatives: [Comet](https://www.comet.ml/))
+* [Gantry](https://gantry.io/) for ML monitoring (Alternatives: [Aporia](https://www.aporia.com/))
+* [Sagemaker](https://aws.amazon.com/sagemaker/) / [Lambda](https://aws.amazon.com/lambda/) for model serving (Alternatives: many)
 
 Note: we plan on adding a feature store in the next iteration, as well as providing an orchestrator-free version,
 by using step functions on AWS to manage the steps.
@@ -55,18 +55,66 @@ The parallelism between the two scenarios should be pretty clear by looking at t
 all the tools for the first time, we suggest you to start from the _Metaflow_ version and then move to the full-scale one
 when all the pieces of the puzzle are well understood.
 
+## Status Update
 
-## How to run the code
-WIP
+*July 2021*
 
-### Prerequisites
+End-2-end flow working for `remote` and `local` projects; started standardizing Prefect agents with Docker and
+adding other services (monitoring, feature store etc.).
 
-#### Download the dataset
+TO-DOs:
 
-The project uses the open dataset from the [2021 Coveo Data Challenge](https://github.com/coveooss/SIGIR-ecom-data-challenge).
-Data is freely available under a research-friendly license.
+* write-up all of this as a blog post;
+* improve code / readability / docs, add potentially some more pics and some videos;
+* finish feature store and gantry integration;
+* add Github Action flow;
+* continue improving the DAG card project.
 
-#### Configure Metaflow
+
+## Setup
+
+Each folder - `remote` and `local` - contains a specific README which should allow you to quickly run the project end-to-end: 
+please refer to that documentation for flow-specific instructions (check back often for updates). 
+
+### Prerequisites (for Both Flows)
+
+Irrespectively of the flow you wish to run, some general tools need to be in place: Metaflow of course, 
+as the heart of our ML practice, but also data and AWS users/roles. *Please go through the general items below before
+tackling the flow-specific instructions*. 
+
+#### Dataset
+
+The project leverages the open dataset from the [2021 Coveo Data Challenge](https://github.com/coveooss/SIGIR-ecom-data-challenge).
+Data is freely available under a research-friendly license - for background information on the dataset, 
+the use cases and relevant work in the ML literature, please refer to the accompanying [paper](https://arxiv.org/abs/2104.09423).
+
+Once you download and unzip the dataset (3 csv files), write down their location as an absolute path: both projects
+need to know where the dataset is.
+
+#### AWS
+
+Both projects  - `remote` and `local` - use AWS services extensively - and by design: this ties back to our philosophy 
+of PaaS-whenever-possible, and play nicely with our core adoption of Metaflow. While you can setup your users in many
+functionally equivalent ways, note that if you want to run the pipeline from ingestion to serving you need to be 
+comfortable with the following AWS interactions:
+
+* Metaflow stack (see below): we assume you installed the Metaflow stack and can run it with an AWS profile of your choice;
+* Serverless stack (see below): we assume you can run `serverless deploy` in your AWS stack;
+* Sagemaker user: we assume you have an AWS user with permissions to manage Sagemaker endpoints (it may be totally
+distinct from any other Metaflow user).
+
+*TBC*
+
+#### Serverless
+
+We wrap Sagemaker predictions in a serverless REST endpoint provided by AWS Lambda and API Gateway. To manage the lambda
+stack we use [Serverless](https://www.serverless.com/cli/) as a wrapper around AWS infrastructure.
+
+*TBC*
+
+#### Metaflow
+
+##### Metaflow: Configuration
 
 If you have an AWS profile configured with a metaflow-friendly user, and you created
 metaflow stack with CloudFormation, you can run the following command with the resources
@@ -81,7 +129,7 @@ custom profile created, you should do:
 
 `METAFLOW_PROFILE=metaflow python flow_playground.py run`
 
-### Tips & Tricks
+##### Metaflow: Tips & Tricks
 
 1. Parallelism Safe Guard
 	- The flag `--max-workers` __should__ be used to limit the maximum number of parallel steps
@@ -100,3 +148,16 @@ custom profile created, you should do:
 		`enable_decorator` around the `@batch` decorator which enables or disables a decorator's functionality
 	- We use this in conjunction with an environment variable `EN_BATCH` to toggle the functionality
 		of __all__ `@batch` decorators.
+
+## FAQ
+
+1. Both projects deal with data that has already been ingested/transmitted to the pipeline, but are silent on data collection.
+Any serverless option there as well?
+
+   *Yes*. In e-commerce use cases, for example, pixel tracking is standard (e.g. [Google Analytics](https://analytics.google.com/analytics/web/)),
+   so a serverless `/collect` endpoint can be used to get front-end data and drop it in a pure PaaS pipeline with [Firehose](https://aws.amazon.com/kinesis/data-firehose/)
+   and Snowpipe, for example. While a bit out-dated for some details, we championed exactly this approach a while ago: if you
+   want to know more, you can start from this [Medium](https://medium.com/tooso/server-less-is-more-98d4275c37ae) post 
+   and old [code](https://github.com/jacopotagliabue/pixel_from_lambda).
+
+*TBC*
