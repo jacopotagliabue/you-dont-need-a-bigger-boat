@@ -5,6 +5,7 @@
 """
 from collections import Counter, namedtuple
 from datetime import datetime
+import json
 from metaflow import Flow, FlowSpec, includefile, namespace
 # define a named tuple for data exchange
 MetaflowData = namedtuple('MFData', ['top_runs', 'user_counter'])
@@ -152,7 +153,7 @@ def build_dag_card(
             'runs': runs.top_runs
         }
     }
-    print(dag_card)
+    print(json.dumps(dag_card, indent=2))
     # finally, time to say good-bye!
     print("\nAll done at {}: see you, space cowboy!".format(datetime.utcnow()))
     # print out the card structure
