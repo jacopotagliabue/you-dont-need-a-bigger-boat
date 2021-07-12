@@ -96,7 +96,6 @@ def parse_dag_graph(graph):
                 'next': '%s' % ', '.join('*%s*' % n for n in node.out_funcs) if node.name != 'end' else '-'
             }
         )
-    print("Total of #{} steps".format(len(steps)))
     return steps
 
 
