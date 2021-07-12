@@ -68,7 +68,7 @@ def get_metaflow_runs(
             'steps': [
               {
                 'finished_at': step.finished_at,
-                'data': step.task.data._artifacts.keys()  #TODO: can we get all the keys in the step in a better way?
+                'data': list(step.task.data._artifacts.keys())  #TODO: can we get all the keys in the step in a better way?
               }
               for step in run.steps()
             ]
