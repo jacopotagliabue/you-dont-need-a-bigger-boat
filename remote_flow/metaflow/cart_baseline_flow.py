@@ -25,7 +25,7 @@ class CartFlow(FlowSpec):
     dbt in Snowflake, and leverage GPUs for training and SageMaker for serving.
 
     """
-    
+
     # uri from: https://github.com/aws/deep-learning-containers/blob/master/available_images.md
     DOCKER_IMAGE_URI = Parameter(
         name='sagemaker_image',
