@@ -1,14 +1,33 @@
-import pandas as pd
+"""
+
+Data preparation for model training
+
+"""
 import csv
+import pandas as pd
 
 
 def prepare_dataset(training_file:str, K:int = None):
+    """
+    Entry point for data preparation step
+
+    :param training_file: path to training file
+    :param K: row limit
+    :return: dictionary of training data X,y
+    """
     sessions = read_sessions_from_training_file(training_file, K)
     x, y = prepare_training_data(sessions)
 
     return {'X' : x, 'y': y}
 
 def read_sessions_from_training_file(training_file: str, K: int = None):
+    """
+    Read data and extract sessions (list of events)
+
+    :param training_file: path to training file
+    :param K: row limit
+    :return: list of sessions
+    """
     user_sessions = []
     current_session = []
     current_session_id = None
@@ -26,9 +45,9 @@ def read_sessions_from_training_file(training_file: str, K: int = None):
             # reset session
             current_session = []
         # We extract actions from session
-        if (row['product_action'] == '' or row['product_action'] == None) and row['event_type'] == 'pageview':
+        if (row['product_action'] == '' or row['product_action'] is None) and row['event_type'] == 'pageview':
             current_session.append('view')
-        elif row['product_action'] != '' and row['product_action'] != None:
+        elif row['product_action'] != '' and row['product_action'] is not None:
             current_session.append(row['product_action'])
         # update the current session id
         current_session_id = _session_id_hash
@@ -41,25 +60,24 @@ def read_sessions_from_training_file(training_file: str, K: int = None):
     return user_sessions
 
 
-def session_indexed(s):
+def session_indexed(s: list):
     """
     Converts a session (of actions) to indices and adds start/end tokens
 
     :param s: list of actions in a session (i.e 'add','detail', etc)
-    :return:
+    :return: list of actions as indices
     """
     # assign an integer to each possible action token
     action_to_idx = {'start': 0, 'end': 1, 'add': 2, 'remove': 3, 'purchase': 4, 'detail': 5, 'view': 6}
     return [action_to_idx['start']] + [action_to_idx[e] for e in s] + [action_to_idx['end']]
 
 
-def prepare_training_data(sessions):
+def prepare_training_data(sessions: list):
     """
-
     Convert extracted session into training data
 
     :param sessions: list of sessions
-    :return:
+    :return: training data
     """
 
     purchase_sessions = []
@@ -76,10 +94,10 @@ def prepare_training_data(sessions):
             # remove actual purchase from list
             p_session.pop(first_purchase)
             purchase_sessions.append(p_session)
-            assert not any( e == 'purchase' for e in p_session)
+            assert not any(e == 'purchase' for e in p_session)
 
         # add action but no purchase
-        elif 'add' in s and not 'purchase' in s:
+        elif 'add' in s and 'purchase' not in s:
             abandon_sessions.append(s)
 
     # convert sessions to index
@@ -90,7 +108,7 @@ def prepare_training_data(sessions):
     x = purchase_sessions + abandon_sessions
 
     # give label=1 for purchase, label=0 for abandon
-    y = [1]*len(purchase_sessions) +[0]*len(abandon_sessions)
+    y = [1]*len(purchase_sessions) + [0]*len(abandon_sessions)
     assert len(x) == len(y)
 
     return x, y

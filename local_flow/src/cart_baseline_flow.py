@@ -1,6 +1,6 @@
 """
 
-    Baseline implemented using Metaflow
+Local implementation of pipeline using Metaflow
 
 """
 
@@ -12,7 +12,7 @@ except Exception as e:
     print(e)
 
 import os
-from metaflow import FlowSpec, step, batch, current, environment, S3, Parameter
+from metaflow import FlowSpec, step, batch, current, environment, S3
 from custom_decorators import pip, enable_decorator
 
 
@@ -48,6 +48,7 @@ class CartFlow(FlowSpec):
         from utils import get_filename
         from metaflow.metaflow_config import DATATOOLS_S3ROOT
 
+        # get dataset S3 paths
         DATASET_PATH = os.path.join(DATATOOLS_S3ROOT, os.getenv('PARQUET_S3_PATH'))
         SEARCH_TRAIN_PATH =  os.path.join(DATASET_PATH, get_filename(os.getenv('SEARCH_TRAIN_PATH')) + '.parquet')
         BROWSING_TRAIN_PATH = os.path.join(DATASET_PATH, get_filename(os.getenv('BROWSING_TRAIN_PATH')) + '.parquet')
@@ -160,7 +161,8 @@ class CartFlow(FlowSpec):
         tf_model.set_weights(self.model_weights)
 
         # save model as .tar.gz onto S3 for SageMaker
-        local_tar_name = tf_model_to_tar(current.run_id, tf_model)
+        local_tar_name = tf_model_to_tar(tf_model, current.run_id)
+        # save model to S3
         with open(local_tar_name, "rb") as in_file:
             data = in_file.read()
             with S3(run=self) as s3:
