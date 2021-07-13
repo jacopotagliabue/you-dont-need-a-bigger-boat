@@ -41,7 +41,7 @@ project current features:
 
 The following picture from our Recsys paper (forthcoming) gives a quick overview of such a pipeline:
 
-![Recsys flow](recsys_flow.png)
+![Recsys flow](recsys_flow.jpg)
 
 We provide _two versions_ of the pipeline, depending on the sophistication of the setup:
 
