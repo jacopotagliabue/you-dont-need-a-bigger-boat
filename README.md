@@ -1,4 +1,4 @@
-# metaflow-intent-prediction
+# You Don't Need a Bigger Boat
 An end-to-end (Metaflow-based) implementation of an intent prediction flow for kids who can't MLOps
 good and [wanna learn to do other stuff good too](https://www.youtube.com/watch?v=NQ-8IuUkJJc).
 
