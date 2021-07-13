@@ -1,4 +1,9 @@
-import json
+"""
+
+Train and LSTM model for intent prediction with using Weights & Biases for tracking
+
+"""
+
 import numpy as np
 import tensorflow as tf
 import tensorflow.keras as keras
@@ -10,6 +15,7 @@ from wandb.keras import WandbCallback
 
 from prepare_dataset import session_indexed
 from utils import return_json_file_content
+
 
 def train_lstm_model(x, y,
                      epochs=200,
@@ -27,7 +33,7 @@ def train_lstm_model(x, y,
     :param lstm_dim: lstm units
     :param batch_size: batch size
     :param lr: learning rate
-    :return:
+    :return: trained model as json-serialized model and model weights
     """
 
     # Verfiy if GPU/CPU is being used
@@ -35,7 +41,7 @@ def train_lstm_model(x, y,
     print(device_lib.list_local_devices())
     print("Starting training now...")
 
-
+    # train & test splits
     X_train, X_test, y_train, y_test = train_test_split(x,y)
     # pad sequences for training in batches
     max_len = max(len(_) for _ in x)
@@ -84,7 +90,14 @@ def train_lstm_model(x, y,
     return model.to_json(), model.get_weights()
 
 def make_predictions(model, model_weights, test_file: str):
+    """
+    Made predictions given a data challenge test file
 
+    :param model: prediction model
+    :param model_weights: model weights
+    :param test_file: path to test file
+    :return: predictions over test file
+    """
     # re-init model and load weights
     model = model_from_json(model)
     model.set_weights(model_weights)
