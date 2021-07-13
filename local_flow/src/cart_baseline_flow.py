@@ -15,6 +15,7 @@ import os
 from metaflow import FlowSpec, step, batch, current, environment, S3, Parameter
 from custom_decorators import pip, enable_decorator
 
+
 class CartFlow(FlowSpec):
 
     @step
@@ -36,7 +37,7 @@ class CartFlow(FlowSpec):
                        'SEARCH_TRAIN_PATH': os.getenv('SEARCH_TRAIN_PATH'),
                        'BROWSING_TRAIN_PATH': os.getenv('BROWSING_TRAIN_PATH'),
                        'SKU_TO_CONTENT_PATH': os.getenv('SKU_TO_CONTENT_PATH')})
-    @pip(libraries={'boto3':'1.17.11', 's3fs':'0.4.2', 'pandas': '1.2.4'})
+    @pip(libraries={'boto3': '1.17.11', 's3fs': '0.4.2', 'pandas': '1.2.4'})
     @step
     def process_raw_data(self):
         """
@@ -76,13 +77,11 @@ class CartFlow(FlowSpec):
         """
         Perform data validation with great_expectations
         """
-
         from data_validation import validate_data
 
         validate_data(current.run_id, current.flow_name, self.data_paths)
 
         self.next(self.prepare_dataset)
-
 
     @step
     def prepare_dataset(self):
@@ -114,7 +113,7 @@ class CartFlow(FlowSpec):
                      flag=os.getenv('EN_BATCH'))
     # @ environment decorator used to pass environment variables to Batch instance
     @environment(vars={'WANDB_API_KEY': os.getenv('WANDB_API_KEY'),
-                       'WANDB_ENTITY' : os.getenv('WANDB_ENTITY'),
+                       'WANDB_ENTITY': os.getenv('WANDB_ENTITY'),
                        'BASE_IMAGE': os.getenv('BASE_IMAGE'),
                        'EN_BATCH': os.getenv('EN_BATCH')})
     # @ custom pip decorator for pip installation on Batch instance
@@ -152,33 +151,16 @@ class CartFlow(FlowSpec):
         """
         Deploy model on SageMaker
         """
-        from sagemaker.tensorflow import TensorFlowModel
-        from tensorflow.keras.models import model_from_json
-        import tensorflow as tf
-        import numpy as np
-        import tarfile
-        import time
         import os
-        import shutil
-
-        # generate a signature for the endpoint using timestamp
-        self.endpoint_name = 'intent-{}-endpoint'.format(int(round(time.time() * 1000)))
-
-        # print out the name, so that we can use it when deploying our lambda
-        print("\n\n================\nEndpoint name is: {}\n\n".format(self.endpoint_name))
+        from tensorflow.keras.models import model_from_json
+        from deploy_model import deploy_model, tf_model_to_tar
 
         # load model from artifacts
         tf_model = model_from_json(self.model)
         tf_model.set_weights(self.model_weights)
 
-        model_name = "intent-model-{}/1".format(current.run_id)
-        local_tar_name = 'model-{}.tar.gz'.format(current.run_id)
-
-        # save model to push to S3
-        tf_model.save(filepath=model_name)
-        with tarfile.open(local_tar_name, mode="w:gz") as _tar:
-            _tar.add(model_name, recursive=True)
-
+        # save model as .tar.gz onto S3 for SageMaker
+        local_tar_name = tf_model_to_tar(current.run_id, tf_model)
         with open(local_tar_name, "rb") as in_file:
             data = in_file.read()
             with S3(run=self) as s3:
@@ -187,30 +169,11 @@ class CartFlow(FlowSpec):
                 print("Model saved at: {}".format(url))
                 # save this path for downstream reference!
                 self.model_s3_path = url
+                # remove local compressed model
+                os.remove(local_tar_name)
 
-        os.remove(local_tar_name)
-        shutil.rmtree(model_name.split('/')[0])
-
-        # create sagemaker tf model
-        model = TensorFlowModel(
-            model_data=self.model_s3_path,
-            image_uri=os.getenv('DOCKER_IMAGE'),
-            role=os.getenv('IAM_SAGEMAKER_ROLE'))
-
-        # deploy sagemaker model
-        predictor = model.deploy(
-            initial_instance_count=1,
-            instance_type=os.getenv('SAGEMAKER_INSTANCE'),
-            endpoint_name=self.endpoint_name)
-
-        # prepare a test input
-        test_inp = {'instances' : tf.one_hot(np.array([[0,1,1,3,4,5]]),
-                                             on_value=1,
-                                             off_value=0,
-                                             depth=7).numpy() }
-        result = predictor.predict(test_inp)
-        print(test_inp, result)
-        assert result['predictions'][0][0] > 0
+        # deploy model on SageMaker
+        self.endpoint_name = deploy_model(self.model_s3_path)
 
         self.next(self.end)
 
