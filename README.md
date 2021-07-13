@@ -56,6 +56,15 @@ The parallelism between the two scenarios should be pretty clear by looking at t
 all the tools for the first time, we suggest you to start from the _Metaflow_ version and then move to the full-scale one
 when all the pieces of the puzzle are well understood.
 
+### Relevant Material
+
+If you want to know more, you can give a look at the following material:
+
+* ["Serverless MLOps for Reasonable Companies"](https://lnkd.in/e2yTyVk) (video), `Data Science Meetup`, June 2021;
+* "You Do Not Need a Bigger Boat: Recommendations at Reasonable Scale in a (Mostly) Serverless and Open Stack", (paper), `RecSys 2021`, forthcoming.
+
+*TBC*
+
 ## Status Update
 
 *July 2021*
@@ -163,3 +172,33 @@ Any serverless option there as well?
    and old [code](https://github.com/jacopotagliabue/pixel_from_lambda).
 
 *TBC*
+
+## How to Cite our Work
+
+If you find our principles, code or data useful, please cite our work:
+
+
+*Paper (forthcoming in RecSys2021)*
+```
+@inproceedings{10.1145/3460231.3474604,
+author = {Tagliabue, Jacopo},
+title = {You Do Not Need a Bigger Boat: Recommendations at Reasonable Scale in a (Mostly) Serverless and Open Stack},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/3460231.3474604},
+doi = {10.1145/3460231.3474604},
+location = {Virtual Event, Canada},
+series = {RecSys '21}
+}
+
+```
+
+*Data*
+```
+@inproceedings{CoveoSIGIR2021,
+author = {Tagliabue, Jacopo and Greco, Ciro and Roy, Jean-Francis and Bianchi, Federico and Cassani, Giovanni and Yu, Bingqing and Chia, Patrick John},
+title = {SIGIR 2021 E-Commerce Workshop Data Challenge},
+year = {2021},
+booktitle = {SIGIR eCom 2021}
+}
+```
