@@ -1,4 +1,4 @@
-# metaflow-intent-prediction
+# You Don't Need a Bigger Boat
 An end-to-end (Metaflow-based) implementation of an intent prediction flow for kids who can't MLOps
 good and [wanna learn to do other stuff good too](https://www.youtube.com/watch?v=NQ-8IuUkJJc).
 
@@ -39,8 +39,9 @@ project current features:
 * [Gantry](https://gantry.io/) for ML monitoring (Alternatives: [Aporia](https://www.aporia.com/))
 * [Sagemaker](https://aws.amazon.com/sagemaker/) / [Lambda](https://aws.amazon.com/lambda/) for model serving (Alternatives: many)
 
-Note: we plan on adding a feature store in the next iteration, as well as providing an orchestrator-free version,
-by using step functions on AWS to manage the steps.
+The following picture from our Recsys paper (forthcoming) gives a quick overview of such a pipeline:
+
+![Recsys flow](recsys_flow.jpg)
 
 We provide _two versions_ of the pipeline, depending on the sophistication of the setup:
 
@@ -66,6 +67,7 @@ TO-DOs:
 
 * write-up all of this as a blog post;
 * improve code / readability / docs, add potentially some more pics and some videos;
+* providing an orchestrator-free version, by using step functions to manage the steps;
 * finish feature store and gantry integration;
 * add Github Action flow;
 * continue improving the DAG card project.
