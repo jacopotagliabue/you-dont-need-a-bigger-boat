@@ -1,0 +1,71 @@
+{
+  "data_asset_type": null,
+  "expectation_suite_name": "browsing_train",
+  "expectations": [
+    {
+      "expectation_type": "expect_column_values_to_not_be_null",
+      "kwargs": {
+        "column": "session_id_hash"
+      },
+      "meta": {}
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_in_type_list",
+      "kwargs": {
+        "column": "session_id_hash",
+        "type_list": [
+          "CHAR",
+          "VARCHAR",
+          "NVARCHAR",
+          "TEXT",
+          "STRING",
+          "StringType",
+          "string",
+          "str"
+        ]
+      },
+      "meta": {}
+    },
+    {
+      "expectation_type": "expect_table_columns_to_match_ordered_list",
+      "kwargs": {
+        "column_list": [
+          "session_id_hash",
+          "event_type",
+          "product_action",
+          "server_timestamp_epoch_ms"
+        ]
+      },
+      "meta": {}
+    },
+    {
+      "expectation_type": "expect_average_session_length_to_be_between",
+      "kwargs": {
+        "column": "session_id_hash",
+        "max_value": 10,
+        "min_value": 4
+      },
+      "meta": {}
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_in_set",
+      "kwargs": {
+        "column": "event_type",
+        "value_set": ["pageview", "event_product"]
+      },
+      "meta": {}
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_in_set",
+      "kwargs": {
+        "column": "product_action",
+        "value_set": ["", "detail", "add", "remove", "purchase"]
+
+      },
+      "meta": {}
+    }
+  ],
+  "meta": {
+    "great_expectations_version": "0.13.19"
+  }
+}
