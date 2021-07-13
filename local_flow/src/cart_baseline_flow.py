@@ -29,7 +29,8 @@ class CartFlow(FlowSpec):
         # Call next step in DAG with self.next(...)
         self.next(self.process_raw_data)
 
-    @batch(gpu=1, cpu=8, image=os.getenv('RAPIDS_IMAGE'), memory=80000)
+    @enable_decorator(batch(gpu=1, cpu=8, image=os.getenv('RAPIDS_IMAGE'), memory=80000),
+                      flag=os.getenv('EN_BATCH'))
     @environment(vars={'RAPIDS_IMAGE': os.getenv('RAPIDS_IMAGE'),
                        'PARQUET_S3_PATH': os.getenv('PARQUET_S3_PATH'),
                        'SEARCH_TRAIN_PATH': os.getenv('SEARCH_TRAIN_PATH'),
@@ -42,17 +43,14 @@ class CartFlow(FlowSpec):
         Read data from S3 datastore and process/transform/wrangle
         """
         import os
-        import pandas as pd
         from process_raw_data import process_raw_data
         from utils import get_filename
         from metaflow.metaflow_config import DATATOOLS_S3ROOT
 
-        DATASET_PATH = os.path.join(DATATOOLS_S3ROOT,os.getenv('PARQUET_S3_PATH'))
-        SEARCH_TRAIN_PATH =  os.path.join(DATASET_PATH, get_filename(os.getenv('SEARCH_TRAIN_PATH'))+ '.parquet')
+        DATASET_PATH = os.path.join(DATATOOLS_S3ROOT, os.getenv('PARQUET_S3_PATH'))
+        SEARCH_TRAIN_PATH =  os.path.join(DATASET_PATH, get_filename(os.getenv('SEARCH_TRAIN_PATH')) + '.parquet')
         BROWSING_TRAIN_PATH = os.path.join(DATASET_PATH, get_filename(os.getenv('BROWSING_TRAIN_PATH')) + '.parquet')
         SKU_TO_CONTENT_PATH = os.path.join(DATASET_PATH, get_filename(os.getenv('SKU_TO_CONTENT_PATH')) + '.parquet')
-
-        os.system('nvidia-smi')
 
         # process raw data
         processed_data = process_raw_data(search_train_path=SEARCH_TRAIN_PATH,
@@ -78,37 +76,11 @@ class CartFlow(FlowSpec):
         """
         Perform data validation with great_expectations
         """
-        import pandas as pd
-        import great_expectations as ge
-        from datetime import datetime
 
-        # add great_expectations/plugins to path
-        import sys
-        sys.path.append('great_expectations')
-        from plugins.custom_expectation import ExpectAverageSessionLengthToBeBetween
+        from data_validation import validate_data
 
-        context = ge.data_context.DataContext()
-        for data_name,data_path in self.data_paths.items():
-            data = pd.read_parquet(data_path, engine='pyarrow')
-            context.run_checkpoint(checkpoint_name='intent_checkpoint',
-                                   batch_request={
-                                        'datasource_name':'s3_parquet',
-                                        'data_connector_name':'runtime_data_connector',
-                                        'data_asset_name':data_name,
-                                        'runtime_parameters':{
-                                            # bug in GE prevents it from reading parquet directly
-                                           'batch_data': data
-                                        },
-                                        'batch_identifiers':{
-                                            "run_id" : current.run_id,
-                                            "data_name" : data_name
-                                        }
-                                   },
-                                   run_name= '-'.join([current.flow_name, current.run_id, data_name]),
-                                   run_time=datetime.utcnow(),
-                                   expectation_suite_name=data_name)
-        context.build_data_docs()
-        context.open_data_docs()
+        validate_data(current.run_id, current.flow_name, self.data_paths)
+
         self.next(self.prepare_dataset)
 
 
@@ -150,7 +122,7 @@ class CartFlow(FlowSpec):
     @step
     def train_model(self):
         """
-        Train a intention prediction model on GPU.
+        Train an intention prediction model on GPU.
         """
         import wandb
         from model import train_lstm_model
@@ -158,6 +130,7 @@ class CartFlow(FlowSpec):
         assert os.getenv('WANDB_API_KEY')
         assert os.getenv('WANDB_ENTITY')
 
+        # initialize wandb for tracking
         wandb.init(entity=os.getenv('WANDB_ENTITY'),
                    project="cart-abandonment",
                    id=current.run_id,
