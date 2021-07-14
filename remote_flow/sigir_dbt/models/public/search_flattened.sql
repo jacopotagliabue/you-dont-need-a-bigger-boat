@@ -7,7 +7,7 @@ SELECT
       session_id_hash
     , organization_id
     , server_timestamp_epoch_ms AS server_timestamp
-    , query_string,
+    , query_string
     , raw_search_event:product_sku_hash::CHAR(64) AS product_sku_hash
     , raw_search_event:rank::INTEGER AS rank
     , raw_search_event:query_vector::STRING AS query_vector
