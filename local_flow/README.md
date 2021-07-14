@@ -88,4 +88,8 @@ We store the dataset in S3 which allows for quick access by Metaflow.
    serverless deploy --sagemaker <SAGEMAKER_ENDPOINT_NAME>
    ```
 
-- Test endpoint by passing in click events as a string : `session=add,cart,view,remove`
+- Test your endpoint by passing in click events as follows:
+   ```
+   https://<SERVERLESS_ENDPOINT>/dev/predict?session=add,cart,view,remove
+   ```
+
