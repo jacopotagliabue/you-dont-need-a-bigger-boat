@@ -20,7 +20,7 @@ As seen in the above diagram, there are four main steps in the flow:
 ## Requirements / Prerequisites
 
 We specify certain variables and secrets in an environment file `.env` and load them
-during runtime using `dotenv`. Make a copy of `.evn.local` and rename it as `.env`.
+during runtime using `dotenv`. Make a copy of `.env.local` and rename it as `.env`.
 
 We describe the basic setup required to run this flow and the environment variables required below.
 
