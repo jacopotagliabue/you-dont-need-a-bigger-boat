@@ -19,3 +19,10 @@ insert_final_newline = false
 [*.sql]
 indent_size = 4
 insert_final_newline = false
+
+[*.py]
+indent_size = 4
+
+[{Makefile,**.mk}]
+# Use tabs for indentation (Makefiles require tabs)
+indent_style = tab

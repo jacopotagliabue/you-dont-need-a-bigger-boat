@@ -1,32 +1,43 @@
-frameworkVersion: ">=1.24.1"
-
 service: metaflow-intent-remote-endpoint
-
-plugins:
-  - serverless-dotenv-plugin
-
-custom:
-  dotenv:
-    # default: serverless project root
-    path: ../.env
 
 provider:
   name: aws
   runtime: python3.7
   stage: dev
-  region: us-west-2
+  region: ${env:AWS_DEFAULT_REGION, 'us-west-2'}
+  lambdaHashingVersion: 20201221
 
+package:
+  individually: true
+  patterns:
+    - "!*/**"
+    - "!*"
 
 functions:
-  prediction_api:
+  predict:
+    handler: handler.predict
     environment:
       SAGEMAKER_ENDPOINT_NAME: ${env:SAGEMAKER_ENDPOINT_NAME}
-      SAGE_USER: ${env:SAGE_USER}
-      SAGE_SECRET: ${env:SAGE_SECRET}
-      SAGE_REGION: ${env:SAGE_REGION}
-
-    handler: handler.predict
     events:
       - http:
           path: predict
           method: get
+    package:
+      patterns:
+        - handler.py
+    iamRoleStatements:
+      - Effect: "Allow"
+        Action:
+          - sagemaker:InvokeEndpoint
+        Resource:
+          Fn::Join:
+            - ':'
+            - - arn
+              - aws
+              - sagemaker
+              - Ref: AWS::Region
+              - Ref: AWS::AccountId
+              - endpoint/${env:SAGEMAKER_ENDPOINT_NAME}
+
+plugins:
+  - serverless-iam-roles-per-function

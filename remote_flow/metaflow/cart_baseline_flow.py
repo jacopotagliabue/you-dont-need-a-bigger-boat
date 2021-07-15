@@ -180,9 +180,9 @@ class CartFlow(FlowSpec):
 
         # The default sagemaker role does not seem to have the required permission to list tags which is needed
         # to update the endpoint.
-        boto_session = boto3.session.Session(region_name=os.getenv('SAGE_REGION', 'us-west-2'),
-                                                  aws_access_key_id=os.getenv('SAGE_USER'),
-                                                  aws_secret_access_key=os.getenv('SAGE_SECRET'))
+        boto_session = boto3.session.Session(
+          region_name=os.getenv('AWS_DEFAULT_REGION', 'us-west-2')
+        )
 
         sagemaker_client = boto_session.client('sagemaker')
 

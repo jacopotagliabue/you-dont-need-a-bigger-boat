@@ -1,0 +1,10 @@
+sigir_2021:
+  drivername: snowflake
+  username: ${SNOWFLAKE_USER}
+  password: ${SNOWFLAKE_PWD}
+  host: ${SNOWFLAKE_ACCOUNT}
+  database: ${SNOWFLAKE_DB}
+  query:
+    schema: ${SNOWFLAKE_SCHEMA_TARGET}
+    warehouse: ${SNOWFLAKE_WAREHOUSE}
+    role: ${SNOWFLAKE_ROLE}
