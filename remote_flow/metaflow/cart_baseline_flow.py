@@ -83,6 +83,7 @@ class CartFlow(FlowSpec):
                      flag=int(os.getenv('EN_BATCH')))
     # @ environment decorator used to pass environment variables to Batch instance
     @environment(vars={'WANDB_API_KEY': os.getenv('WANDB_API_KEY'),
+                       'WANDB_PROJECT' : os.getenv('WANDB_PROJECT'),
                        'WANDB_ENTITY' : os.getenv('WANDB_ENTITY'),
                        'BASE_IMAGE': os.getenv('BASE_IMAGE'),
                        'EN_BATCH': os.getenv('EN_BATCH')})
