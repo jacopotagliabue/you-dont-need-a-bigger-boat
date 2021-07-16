@@ -61,7 +61,7 @@ when all the pieces of the puzzle are well understood.
 If you want to know more, you can give a look at the following material:
 
 * ["Serverless MLOps for Reasonable Companies"](https://lnkd.in/e2yTyVk) (video), `Data Science Meetup`, June 2021;
-* "You Do Not Need a Bigger Boat: Recommendations at Reasonable Scale in a (Mostly) Serverless and Open Stack", (paper), `RecSys 2021`, forthcoming.
+* "You Do Not Need a Bigger Boat: Recommendations at Reasonable Scale in a (Mostly) Serverless and Open Stack", ([preprint](https://arxiv.org/abs/2107.07346), `RecSys 2021`.
 
 *TBC*
 
