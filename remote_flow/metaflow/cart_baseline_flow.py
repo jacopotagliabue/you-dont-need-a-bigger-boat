@@ -123,7 +123,7 @@ class CartFlow(FlowSpec):
         model_name = "metaflow-intent-prediction-remote-model-{}/1-{}".format(self.config['LEARNING_RATE'], time.time())
         local_tar_name = 'model-{}.tar.gz'.format(self.config['LEARNING_RATE'])
         x_model.save(filepath=model_name)
-        max_len = max(len(_) for _ in self.dataset['X'][0:1000])
+        max_len = max(len(_) for _ in self.dataset['X'][0:1000])  # using a limited amount of data so training is faster and cost less resources.
         X_train = pad_sequences(self.dataset['X'][0:1000], padding="post", value=7, maxlen=max_len)
         self.X = tf.one_hot(X_train, depth=7)
         self.y = x_model.predict(self.X, batch_size=self.config['BATCH_SIZE'])
@@ -147,19 +147,6 @@ class CartFlow(FlowSpec):
                 self.s3_path = url
 
         self.next(self.deploy)
-
-    # @step
-    # def send_to_gantry(self):
-    #     from gantry.summarize import SummarizationContext
-    #     import gantry.sdk as gantry_sdk
-    #
-    #     gantry_sdk.init()
-    #
-    #     with SummarizationContext("loan_pred") as ctx:
-    #         ctx.register(inputs=self.dataset['X'], outputs=self.predictions)
-    #         gantry_sdk.set_reference(ctx)
-    #
-    #     self.next(self.deploy)
 
     @step
     def deploy(self):
