@@ -17,7 +17,8 @@ As seen in the above diagram, there are four main steps in the flow:
 2. Data Validation: [Great Expectations](https://greatexpectations.io/) is used to perform data validation on the transformed data.
 3. Model Training: Keras (or other ML Libraries) is used to train the model and experiment tracking is done via Weights & Biases.
 4. Model Serving: The trained model is deployed on SageMaker and is exposed via a public Lambda endpoint.
-   Gantry is used here for model monitoring.
+
+[comment]: <> (   Gantry is used here for model monitoring.)
 
 
 ## Requirements / Prerequisites
@@ -30,7 +31,8 @@ We describe the basic setup required to run this flow, and the environment varia
 ### Packages
 
 - Install required python packages as per `requirements.txt` in `local_flow`;
-- Install Gantry as per the gantry [guide](https://docs.gantry.io/en/latest/how-to/installation.html).
+
+[comment]: <> (- Install Gantry as per the gantry [guide]&#40;https://docs.gantry.io/en/latest/how-to/installation.html&#41;.)
 
 ### Docker Images
 
