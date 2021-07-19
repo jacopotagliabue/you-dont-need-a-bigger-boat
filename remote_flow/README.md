@@ -36,15 +36,10 @@ DAG for the training procedure and allow us to specify different compute resourc
 ensure we use a GPU when we need a GPU. There many other advantages to using Metaflow, such as build artifact management and the
 possibility of resuming failed flow, for a full list of features please consult their [website](https://metaflow.org/).
 
-While Metaflow handles our training steps, we use two other tools for tracking:
-* Weights&Biases for training metrics and
-* Gantry for online metrics.
+While Metaflow handles our training steps we use Weights&Biases for tracking training metrics.
 
 Weights&Biases allows us to register run metrics and training parameters. This allows for quick search and
 comparisons between training runs and experimentation runs.
-
-Gantry on the other hand allows us to compare our training data to the data the model receives once deployed. This allows for the
-early detection of data or model drift and accurate tracking of performance metrics for deployed models.
 
 At this step the model is deployed as a SageMaker endpoint, this acts as our model registry.
 
@@ -53,35 +48,29 @@ At this step the model is deployed as a SageMaker endpoint, this acts as our mod
 To expose the newly trained SageMaker endpoint to the world, we create a lambda which will format and route a request to our SageMaker endpoint.
 We do so through the use of serverless.
 
-
 ### Setup
 
 Now that we have seen the individual pieces, let's set this up!
 
-This setup assumes you are running everything from the `remote_flow` folder.
+For this setup you need to create a `remote_flow/.env` file from the template `remote_flow/example.env`.
+
+A Makefile is provided to help you launch the proper commands.
 
 #### General management of secrets
 
-This project manages secrets by placing them in a .env file under the `remote_flow` directory and loading
-them with the `dotenv` package.  There is a sample file named `example.env` you can use as a template.
+This project runs in a single docker. The `.env` field will be used to create the proper environment within the docker.
+This will also copy `.aws` into the docker. Since everything is run locally, this is not an issue. That being said, you
+should avoid pushing or sharing your docker image as it will contain your `.aws` credentials. If you want to use this set
+up in a production environment it may be best to pass the relevant credentials at run time.
 
-#### Creating a python virtual env and installing the dependencies
 
-```
-python -m venv remote-flow-env
-```
-Activate the venv
-```
-source remote-flow-env/bin/activate
-```
+#### Building the docker
 
-Install the requirements
+To build the docker simply call:
 ```
-pip install -r requirements.txt
+make build
 ```
-
-**Note:** This uses the pip installation for dbt. [Official doc](https://docs.getdbt.com/dbt-cli/installation)
-
+this may take a while.
 
 #### Loading the data
 
@@ -113,7 +102,7 @@ Additionally, you will want to make sure that these values are properly set:
 MODEL_CONFIG_PATH=config.json  # no need to change this
 BASE_IMAGE=
 EN_BATCH=
-SAGEMAKER_ENDPOINT_NAME=
+METAFLOW_PROFILE=metaflow
 ```
 
 **Important: You need to have an aws profile named `metaflow` which has the required permissions.**
@@ -152,11 +141,7 @@ PREFECT__SERVER__HOST=
 
 #### dbt
 
-You need to set an environment variable which points to your dbt profile. By default this is `~/.dbt`.
-```
-# DBT variables
-DBT_PROFILES_DIR=`~/.dbt`
-```
+No additional setup is needed for dbt.
 
 #### Great expectations
 
@@ -176,40 +161,17 @@ WANDB_ENTITY=
 WANDB_PROJECT=
 ```
 
-#### Gantry
-
-WIP
-
 #### AWS Sagemaker
 
 Make sure you have a user which can deploy a SageMaker endpoint. This is used during the Metaflow step.
 ```
 #SageMaker variables
 SAGEMAKER_ENDPOINT_NAME=  # Don't pick a long name here. Make sure it matches serverless/serverless.yml.
-SAGE_USER=
-SAGE_SECRET=
-SAGE_REGION=
 ```
 
 #### Serverless
 
-Install serverless following the [official doc](https://www.serverless.com/framework/docs/getting-started/).
-
-This setup was tested using the node installation via `npm`. If chose this installation make sure server less
-is installed on your default node version. Prefect will launch a shell task when running `serverless`, this shell
-must be pointing towards the node version which has the `serverless` installation. Otherwise the task will return
-`127` which most likely means serverless command wasn't found.
-
-Make sure you have a aws profile named `serverless` which can deploy a SageMaker endpoint. This is used during the Metaflow step.
-
-To keep a constant usage of env variables we opted for the `serverless-dotenv-plugin`, which you can install with this command:
-
-```
-npm i -D serverless-dotenv-plugin
-```
-
-Serverless is configured to read from the main `.env`. See `serverless.yml`.
-
+Serverless is installed on the docker image and configured properly.
 
 #### Final .env
 
@@ -217,10 +179,27 @@ You final `.env` should match [example.env](example.env) with all empty values f
 
 ### Launching
 
-
 #### 1. Data upload
 
-From the `remote_flow` directory. Run the following python script:
+This is a onetime step to push the toy data to snowflake. This step is done outside the docker and was tested with `python 3.8.6`.
+
+##### Prepare the environment for data upload
+
+From the `remote_flow` directory.
+```
+python -m venv remote-flow-data-push
+```
+Activate the venv
+```
+source remote-flow-data-push/bin/activate
+```
+
+Install the requirements
+```
+pip install -r requirements-data.txt
+```
+
+ Run the following python script:
 
 ```
 python metaflow/data_processing/push_data_to_sf.py
@@ -232,18 +211,10 @@ transforming the data to make it look like raw server side logging data.
 #### 2. The whole #!
 Once everything is setup and your raw data has been uploaded, you can run
 ```
-python launch_prefect.py
+make start
 ```
 from the `remote_flow` directory. This will launch a prefect agent. Connect then your [prefect cloud](https://www.prefect.io/),
 find your newly created flow and run it!
-
-##### Alternative without the prefect cloud UI
-
-If you do not want to go through the Prefect cloud UI, you can simply launch your flow directly by changing:
-```
-flow.run_agent() -> flow.run()
-```
-on the last line of `launch_prefect.py`.
 
 #### 3. Testing the endpoint
 
