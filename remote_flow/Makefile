@@ -13,7 +13,13 @@ build:
 	docker build --tag $(DOCKER_TAG) .
 
 start: build
-	docker run $(DOCKER_ARGS) $(DOCKER_TAG)
+	docker run --rm $(DOCKER_ARGS) $(DOCKER_TAG)
 
 bash: build
-	docker run -it --rm $(DOCKER_ARGS) $(DOCKER_TAG) /bin/bash
+	docker run --rm -it $(DOCKER_ARGS) $(DOCKER_TAG) /bin/bash
+
+push_data_to_sf:
+	python3 -m venv .venv \
+	&& source .venv/bin/activate \
+	&& pip install -r requirements-data.txt \
+	&& python3 metaflow/data_processing/push_data_to_sf.py
