@@ -1,8 +1,3 @@
-"""
-
-AWS Lambda endpoint to expose sagemaker
-
-"""
 import boto3
 import json
 import configparser
@@ -14,7 +9,7 @@ import os
 config = configparser.ConfigParser()
 config.read('settings.ini')
 # grab environment variables
-SAGEMAKER_ENDPOINT_NAME = os.getenv('SAGEMAKER_ENDPOINT_NAME')
+SAGEMAKER_ENDPOINT_NAME = os.getenv('SAGEMAKER_ENDPOINT_NAME','intent-1624889175387-endpoint')
 # print to AWS for debug!
 print(SAGEMAKER_ENDPOINT_NAME)
 # instantiate AWS client for invoking sagemaker endpoint
@@ -69,7 +64,7 @@ def predict(event, context):
     :param context: standard AWS lambda context param - not use in this application
     :return:
     """
-    # static mapping of tokens to features ("feature store")
+    # static "feature store"
     action_map = {
         'start' : [1,0,0,0,0,0,0],
         'end' : [0,1,0,0,0,0,0],
@@ -90,12 +85,10 @@ def predict(event, context):
 
     print(session)
 
-    # append start and end tokens
     session = ['start'] + session + ['end']
-    # convert session into model and sagemaker input format
+
     session_onehot = [ action_map[_] if _ in action_map else action_map['empty'] for _ in session]
     input_payload = { 'instances': [ session_onehot ] }  # input is array of array, even if we just ask for 1 prediction here
-    # make prediction
     result = get_response_from_sagemaker(json.dumps(input_payload),
                                          SAGEMAKER_ENDPOINT_NAME,
                                          content_type='application/json')

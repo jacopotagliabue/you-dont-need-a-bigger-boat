@@ -83,6 +83,7 @@ class CartFlow(FlowSpec):
                      flag=int(os.getenv('EN_BATCH')))
     # @ environment decorator used to pass environment variables to Batch instance
     @environment(vars={'WANDB_API_KEY': os.getenv('WANDB_API_KEY'),
+                       'WANDB_PROJECT' : os.getenv('WANDB_PROJECT'),
                        'WANDB_ENTITY' : os.getenv('WANDB_ENTITY'),
                        'BASE_IMAGE': os.getenv('BASE_IMAGE'),
                        'EN_BATCH': os.getenv('EN_BATCH')})
@@ -122,7 +123,7 @@ class CartFlow(FlowSpec):
         model_name = "metaflow-intent-prediction-remote-model-{}/1-{}".format(self.config['LEARNING_RATE'], time.time())
         local_tar_name = 'model-{}.tar.gz'.format(self.config['LEARNING_RATE'])
         x_model.save(filepath=model_name)
-        max_len = max(len(_) for _ in self.dataset['X'][0:1000])
+        max_len = max(len(_) for _ in self.dataset['X'][0:1000])  # using a limited amount of data so training is faster and cost less resources.
         X_train = pad_sequences(self.dataset['X'][0:1000], padding="post", value=7, maxlen=max_len)
         self.X = tf.one_hot(X_train, depth=7)
         self.y = x_model.predict(self.X, batch_size=self.config['BATCH_SIZE'])
@@ -147,19 +148,6 @@ class CartFlow(FlowSpec):
 
         self.next(self.deploy)
 
-    # @step
-    # def send_to_gantry(self):
-    #     from gantry.summarize import SummarizationContext
-    #     import gantry.sdk as gantry_sdk
-    #
-    #     gantry_sdk.init()
-    #
-    #     with SummarizationContext("loan_pred") as ctx:
-    #         ctx.register(inputs=self.dataset['X'], outputs=self.predictions)
-    #         gantry_sdk.set_reference(ctx)
-    #
-    #     self.next(self.deploy)
-
     @step
     def deploy(self):
         """
@@ -179,9 +167,9 @@ class CartFlow(FlowSpec):
 
         # The default sagemaker role does not seem to have the required permission to list tags which is needed
         # to update the endpoint.
-        boto_session = boto3.session.Session(region_name=os.getenv('SAGE_REGION', 'us-west-2'),
-                                                  aws_access_key_id=os.getenv('SAGE_USER'),
-                                                  aws_secret_access_key=os.getenv('SAGE_SECRET'))
+        boto_session = boto3.session.Session(
+          region_name=os.getenv('AWS_DEFAULT_REGION', 'us-west-2')
+        )
 
         sagemaker_client = boto_session.client('sagemaker')
 

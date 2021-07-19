@@ -1,0 +1,15 @@
+{
+  "name": "metaflow-intent-remote-endpoint",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "deploy": "serverless deploy"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "serverless": "^2.51.2",
+    "serverless-iam-roles-per-function": "^3.2.0"
+  }
+}

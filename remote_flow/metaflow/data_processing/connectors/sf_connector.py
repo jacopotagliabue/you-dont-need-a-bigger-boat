@@ -46,12 +46,13 @@ class SFSelfClosingNamespaceConnection:
         self._ctx = snowflake.connector.connect(
             user=os.getenv('SNOWFLAKE_USER'),
             password=os.getenv('SNOWFLAKE_PWD'),
-            account=os.getenv('SNOWFLAKE_ACCOUNT')
+            account=os.getenv('SNOWFLAKE_ACCOUNT'),
+            role=os.getenv('SNOWFLAKE_ROLE'),
+            warehouse=self._warehouse,
+            database=self._database,
         )
         self._cs = self._ctx.cursor()
         self._d_cs = self._ctx.cursor(DictCursor)
-        self._cs.execute(f"USE WAREHOUSE {self._warehouse}")
-        self._cs.execute(f"USE DATABASE {self._database}")
         self._cs.execute(f"CREATE SCHEMA IF NOT EXISTS {self._schema}")
         self._cs.execute(f"USE SCHEMA {self._schema}")
         return self
