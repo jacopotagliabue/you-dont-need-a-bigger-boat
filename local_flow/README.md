@@ -60,7 +60,7 @@ You need to have appropriate permissions for Sagemaker in AWS and specify the in
 ### Serverless
 
 For serverless, make a copy of `settings.ini.template` found in the `serverless` directory
-and rename it to `serverless.ini`. It should contain the credentials with permissions for SageMaker.
+and rename it to `settings.ini`. It should contain the credentials with permissions for SageMaker.
    - `SAGE_USER`
    - `SAGE_SECRET`
    - `SAGE_REGION`
