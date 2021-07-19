@@ -57,14 +57,6 @@ You need to have appropriate permissions for Sagemaker in AWS and specify the in
   - `IAM_SAGEMAKER_ROLE`
   - `SAGEMAKER_INSTANCE`
 
-### Serverless
-
-For serverless, make a copy of `settings.ini.template` found in the `serverless` directory
-and rename it to `settings.ini`. It should contain the credentials with permissions for SageMaker.
-   - `SAGE_USER`
-   - `SAGE_SECRET`
-   - `SAGE_REGION`
-
 ### Local Dataset Upload
 
 We store the dataset in S3 which allows for quick access by Metaflow.
@@ -86,6 +78,15 @@ We store the dataset in S3 which allows for quick access by Metaflow.
 
 We define the parameters for our model configuration in a `config.json` as specified in
 the environment variable `MODEL_CONFIG_PATH`.
+
+### Serverless
+
+For serverless, make a copy of `settings.ini.template` found in the `serverless` directory
+and rename it to `settings.ini`. It should contain the credentials with permissions for SageMaker.
+   - `SAGE_USER`
+   - `SAGE_SECRET`
+   - `SAGE_REGION`
+
 
 ## How to Run
 
