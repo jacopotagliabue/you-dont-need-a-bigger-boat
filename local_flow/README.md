@@ -6,7 +6,10 @@
 
 ![local_flow_diagram](imgs/local_flow.png)
 
-This version of the pipeline utilises Metaflow as the main pipeline orchestrator.
+This version of the pipeline utilizes Metaflow as the main pipeline orchestrator. This README provides an overview of
+the local version of pipeline and contains setup instructions specific to this version. For the general prerequisites,
+Metaflow setup and background information about the pipeline, please refer to the main README.
+
 
 As seen in the above diagram, there are four main steps in the flow:
 
@@ -22,7 +25,7 @@ As seen in the above diagram, there are four main steps in the flow:
 We specify certain variables and secrets in an environment file `.env` and load them
 during runtime using `dotenv`. Make a copy of `.env.local` and rename it as `.env`.
 
-We describe the basic setup required to run this flow and the environment variables required below.
+We describe the basic setup required to run this flow, and the environment variables required below.
 
 ### Packages
 
@@ -47,8 +50,16 @@ want to associate your tracking with.
 
 ### Sagemaker
 You need to have appropriate permissions for Sagemaker in AWS and specify the instance type for deployment.
-- `IAM_SAGEMAKER_ROLE`
-- `SAGEMAKER_INSTANCE`
+  - `IAM_SAGEMAKER_ROLE`
+  - `SAGEMAKER_INSTANCE`
+
+### Serverless
+
+For serverless, make a copy of `settings.ini.template` found in the `serverless` directory
+and rename it to `serverless.ini`. It should contain the credentials with permissions for SageMaker.
+   - `SAGE_USER`
+   - `SAGE_SECRET`
+   - `SAGE_REGION`
 
 ### Local Dataset Upload
 
@@ -61,7 +72,7 @@ We store the dataset in S3 which allows for quick access by Metaflow.
     - `SEARCH_TRAIN_PATH`
     - `SKU_TO_CONTENT_PATH`
 - Note that there is no versioning of the dataset;
-- Execute the following to upload the dataset (this might take awhile depending
+- Execute the following to upload the dataset (this might take a while depending
   on your internet connection):
   ```
   python local_dataset_upload.py
@@ -72,21 +83,31 @@ We store the dataset in S3 which allows for quick access by Metaflow.
 
 ### Running Metaflow
 
-- Execute from the directory `model_flow`
-- Due to Great Expectations, `--no-pylint` flag is required
+- Execute from the directory `local_flow`;
+- Due to Great Expectations, `--no-pylint` flag is required;
 - Execute the following to initate a run:
+
   ```
     python src/cart_baseline_flow.py --no-pylint run --max-workers 8
+  ```
+- You can also specify the AWS profile associated with your Metaflow setup as per the main README:
+
+  ```
+    METAFLOW_PROFILE=<AWS_METAFLOW_PROFILE> python src/cart_baseline_flow.py --no-pylint run --max-workers 8
   ```
 
 ### Running Serverless
 -  Once the flow is completed, we can expose the SageMaker model via a serverless endpoint;
--  obtain `SAGE_MAKER_ENDPOINT_NAME` from output of `deploy` step in Metaflow
-- `cd` into serverless folder
+-  Obtain `SAGE_MAKER_ENDPOINT_NAME` from output of `deploy` step in Metaflow;
+- `cd` into serverless folder;
 -  Execute the following:
    ```
    serverless deploy --sagemaker <SAGEMAKER_ENDPOINT_NAME>
    ```
+- You can also specify an AWS profile that is configured with the required permissions for serverless:
+  ```
+  serverless deploy --sagemaker <SAGEMAKER_ENDPOINT_NAME> --aws-profile <AWS_SERVERLESS_PROFILE>
+  ```
 
 - Test your endpoint by passing in click events as follows:
    ```
