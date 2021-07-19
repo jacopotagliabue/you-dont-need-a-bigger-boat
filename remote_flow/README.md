@@ -187,22 +187,7 @@ This is a onetime step to push the toy data to snowflake. This step is done outs
 
 From the `remote_flow` directory.
 ```
-python -m venv remote-flow-data-push
-```
-Activate the venv
-```
-source remote-flow-data-push/bin/activate
-```
-
-Install the requirements
-```
-pip install -r requirements-data.txt
-```
-
- Run the following python script:
-
-```
-python metaflow/data_processing/push_data_to_sf.py
+make push_data_to_sf
 ```
 
 This will read the data from your `LOCAL_DATA_PATH` and push it to the `SNOWFLAKE_SCHEMA_SOURCE` schema after
