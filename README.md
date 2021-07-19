@@ -61,7 +61,8 @@ when all the pieces of the puzzle are well understood.
 If you want to know more, you can give a look at the following material:
 
 * ["Serverless MLOps for Reasonable Companies"](https://lnkd.in/e2yTyVk) (video), `Data Science Meetup`, June 2021;
-* "You Do Not Need a Bigger Boat: Recommendations at Reasonable Scale in a (Mostly) Serverless and Open Stack", (paper), `RecSys 2021`, forthcoming.
+* ["You Do Not Need a Bigger Boat: Recommendations at Reasonable Scale in a (Mostly) Serverless and Open Stack"](https://arxiv.org/abs/2107.07346) 
+(preprint), `RecSys 2021`.
 
 *TBC*
 
@@ -129,7 +130,7 @@ stack we use [Serverless](https://www.serverless.com/cli/) as a wrapper around A
 
 If you have an AWS profile configured with a metaflow-friendly user, and you created
 metaflow stack with CloudFormation, you can run the following command with the resources
-created by CloufFormation to set up metaflow on AWS:
+created by CloudFormation to set up metaflow on AWS:
 
 `metaflow configure aws --profile metaflow`
 
@@ -149,7 +150,7 @@ custom profile created, you should do:
 2. Environment Variables in AWS Batch
 	- The `@environment` decorator is used in conjunction with `@batch` to pass environment variables to
 		AWS Batch, which will not directly have access to env variables on your local machine
-	- In the basic `CartFlow` example, we use `@environemnt` to pass the Weights & Biases API Key (amongst other things)
+	- In the `local` example, we use `@environemnt` to pass the Weights & Biases API Key (amongst other things)
 3. Resuming Flows
 	- Resuming flows is useful during development to avoid re-running compute/time intensive steps
 		such as data preparation
@@ -187,7 +188,6 @@ publisher = {Association for Computing Machinery},
 address = {New York, NY, USA},
 url = {https://doi.org/10.1145/3460231.3474604},
 doi = {10.1145/3460231.3474604},
-location = {Virtual Event, Canada},
 series = {RecSys '21}
 }
 
