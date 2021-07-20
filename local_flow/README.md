@@ -37,20 +37,21 @@ We describe the basic setup required to run this flow, and the environment varia
 ### Docker Images
 
 Several docker images are required for use with AWS Batch in Metaflow and
-for model serving on SageMaker.
+for model serving on SageMaker. See [here](https://github.com/aws/deep-learning-containers/blob/master/available_images.md)
+for images made available by AWS.
 
 - `BASE_IMAGE`: Docker image for GPU training
-- `RAPIDS_IMAGE`: Docker image with [RAPIDS](https://rapids.ai/) installed
+- `RAPIDS_IMAGE`: Docker image with [RAPIDS installed](https://rapids.ai/start.html#get-rapids)
 - `DOCKER_IMAGE`: Docker image for Sagemaker endpoint
 
 ### Weights & Biases
 To utilise Weights & Biases, you need to obtain your account specific API key and specify the entity which you
 want to associate your tracking with. You can create an account [here](https://app.wandb.ai/login?signup=true).
-Further information about W&B environment variables can be found
+Further information about Weights & Biases environment variables can be found
 [here](https://docs.wandb.ai/guides/track/advanced/environment-variables).
 
 - `WANDB_API_KEY`
-- `WANDB_ENTITY`
+- `WANDB_ENTITY`: Your Weights & Biases username or team name (if you are account is linked to a team)
 
 ### Sagemaker
 You need to have appropriate permissions for Sagemaker in AWS and specify the instance type for deployment.
@@ -59,11 +60,12 @@ You need to have appropriate permissions for Sagemaker in AWS and specify the in
 
 ### Local Dataset Upload
 
-We store the dataset in S3 which allows for quick access by Metaflow.
+We store the CSV dataset in S3 as parquet files which allows for quick access by Metaflow. We utilise the S3 bucket previously
+configured for use with Metaflow (i.e. `METAFLOW_DATATOOLS_SYSROOT_S3`).
 
 - `local_dataset_upload.py` performs the upload of the `.csv` dataset files
   (`browsing_train.csv`, `search_train.csv`, ...) into metaflow S3
-  datastore (`METAFLOW_DATATOOLS_SYSROOT_S3` bucket) as `.parquet` files at `PARQUET_S3_PATH`;
+  datastore as `.parquet` files at `PARQUET_S3_PATH`;
 - Specify the absolute paths to the dataset files in the following environment variables:
     - `BROWSING_TRAIN_PATH`
     - `SEARCH_TRAIN_PATH`
@@ -72,8 +74,9 @@ We store the dataset in S3 which allows for quick access by Metaflow.
 - Execute the following to upload the dataset (this might take a while depending
   on your internet connection):
   ```
-  python local_dataset_upload.py
+  METAFLOW_PROFILE=metaflow python local_dataset_upload.py
   ```
+
 ### ML Model Configuration
 
 We define the parameters for our model configuration in a `config.json` as specified in
@@ -82,13 +85,17 @@ the environment variable `MODEL_CONFIG_PATH`.
 ### Serverless
 
 For serverless, make a copy of `settings.ini.template` found in the `serverless` directory
-and rename it to `settings.ini`. It should contain the credentials with permissions for SageMaker.
+and rename it to `settings.ini`. It should contain the credentials with permissions for
+SageMaker.
    - `SAGE_USER`
    - `SAGE_SECRET`
    - `SAGE_REGION`
 
 
 ## How to Run
+
+First, ensure that you have set the above mentioned environment variables, and have successfully
+performed the dataset upload into S3 as described above.
 
 ### Running Metaflow
 
