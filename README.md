@@ -75,6 +75,7 @@ adding other services (monitoring, feature store etc.).
 
 TO-DOs:
 
+* dockerize the local flow;
 * write-up all of this as a blog post;
 * improve code / readability / docs, add potentially some more pics and some videos;
 * providing an orchestrator-free version, by using step functions to manage the steps;
@@ -84,24 +85,30 @@ TO-DOs:
 
 
 ## Setup
-
-Each folder - `remote` and `local` - contains a specific README which should allow you to quickly run the project end-to-end: 
-please refer to that documentation for flow-specific instructions (check back often for updates). 
-
-### Prerequisites (for Both Flows)
+ 
+### General Prerequisites (do this first!)
 
 Irrespectively of the flow you wish to run, some general tools need to be in place: Metaflow of course, 
 as the heart of our ML practice, but also data and AWS users/roles. *Please go through the general items below before
 tackling the flow-specific instructions*. 
 
+After you finish the prerequisites below, you can run the flow you desire: each folder - `remote` and `local` - contains 
+a specific README which should allow you to quickly run the project end-to-end: please refer to that documentation for 
+flow-specific instructions (check back often for updates).
+
 #### Dataset
 
-The project leverages the open dataset from the [2021 Coveo Data Challenge](https://github.com/coveooss/SIGIR-ecom-data-challenge).
+The project leverages the open dataset from the [2021 Coveo Data Challenge](https://github.com/coveooss/SIGIR-ecom-data-challenge):
+the dataset can be downloaded directly from [here](https://www.coveo.com/en/ailabs/sigir-ecom-data-challenge) (refer to the
+full [README](https://github.com/coveooss/SIGIR-ecom-data-challenge) for terms and conditions).
 Data is freely available under a research-friendly license - for background information on the dataset, 
-the use cases and relevant work in the ML literature, please refer to the accompanying [paper](https://arxiv.org/abs/2104.09423).
+the use cases and relevant work in the ML literature, please refer to the 
+accompanying [paper](https://arxiv.org/abs/2104.09423).
 
-Once you download and unzip the dataset (3 csv files), write down their location as an absolute path: both projects
-need to know where the dataset is.
+Once you download and unzip the dataset in a local folder of your choice 
+(the zip contains 3 files, `browsing_train.csv`, `search_train.csv`, `sku_to_content.csv`), 
+write down their location as an absolute path (e.g. `/Users/jacopo/Documents/data/train/browsing_train.csv`): 
+both projects need to know where the dataset is.
 
 #### AWS
 
