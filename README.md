@@ -84,15 +84,16 @@ TO-DOs:
 
 
 ## Setup
-
-Each folder - `remote` and `local` - contains a specific README which should allow you to quickly run the project end-to-end: 
-please refer to that documentation for flow-specific instructions (check back often for updates). 
-
-### Prerequisites (for Both Flows)
+ 
+### General Prerequisites (do this first!)
 
 Irrespectively of the flow you wish to run, some general tools need to be in place: Metaflow of course, 
 as the heart of our ML practice, but also data and AWS users/roles. *Please go through the general items below before
 tackling the flow-specific instructions*. 
+
+After you finish the prerequisites below, you can run the flow you desire: each folder - `remote` and `local` - contains 
+a specific README which should allow you to quickly run the project end-to-end: please refer to that documentation for 
+flow-specific instructions (check back often for updates).
 
 #### Dataset
 
