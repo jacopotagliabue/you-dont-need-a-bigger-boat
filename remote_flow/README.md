@@ -208,8 +208,8 @@ These are the envs you have to set on your `remote_flow/.env` file:
 
 ```
 WANDB_API_KEY=
-WANDB_PROJECT=
 WANDB_ENTITY=
+WANDB_PROJECT=
 ```
 
 1. Create a free account on [Weights&Biases](https://wandb.ai)
@@ -217,12 +217,13 @@ WANDB_ENTITY=
    - click on your avatar on the Top Right > `Settings`
    - scroll to the `API keys` section and copy your api key
    - set your API Key on the `WANDB_API_KEY` env
-3. Create a new project:
+3. Set your entity name on the `WANDB_ENTITY` env\
+   - it is your profile name, you'll find it on `Settings` -> `Username`
+4. Create a new project:
    - go back to the home and click on `+ Create new project` on the left sidebar
    - set a project name (e.g. MetaflowIntentPrediction)
    - click on `Create project`
    - set your new project name on the `WANDB_PROJECT` env
-4. Set a entity name on the `WANDB_ENTITY` env (e.g. CartAbandonment)
 
 
 ### AWS Sagemaker
@@ -294,7 +295,7 @@ INFO - agent | Waiting for flow runs...
 ```
 
 
-Now connect to your [Prefect Cloud](https://www.prefect.io/), from the `Dashboard` section click on the `FLOWS` tab; you'll see your flow ready to be executed. Click on its name, then click on the `RUN` tab and finally click on `RUN` to launch it.
+Now connect to your [Prefect Cloud](https://www.prefect.io/), from the `Dashboard` section click on the `FLOWS` tab; you'll see your flow ready to be executed. Click on its name, then click on the `QUICK RUN` on the top-right.
 
 Once launched you'll see something like this on your local terminal:
 
