@@ -13,12 +13,12 @@ COPY serverless/package.json serverless/package.json
 RUN cd serverless && npm install
 
 # Python dependencies
-COPY requirements.txt requirements.txt
-RUN pip3 install -r requirements.txt
+COPY docker/run/requirements.txt /tmp/requirements.txt
+RUN pip3 install -r /tmp/requirements.txt
 
 # Global Configurations
-COPY resources/dbt_profiles.yml /root/.dbt/profiles.yml
-COPY resources/great_expectations_config_variables.yml great_expectations/uncommitted/config_variables.yml
+COPY docker/run/dbt_profiles.yml /root/.dbt/profiles.yml
+COPY docker/run/great_expectations_config_variables.yml great_expectations/uncommitted/config_variables.yml
 
 # Codebase
 COPY . .
@@ -28,4 +28,4 @@ ENV METAFLOW_HOME=/root/.metaflowconfig
 ENV DBT_PROFILES_DIR=/root/.dbt
 
 
-CMD [ "python", "./launch_prefect.py" ]
+CMD [ "python", "./prefect/run_agent.py" ]

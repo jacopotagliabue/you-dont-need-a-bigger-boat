@@ -33,6 +33,7 @@ dbt_task = DbtShellTask(
 metaflow_task = ShellTask(
     log_stderr=True,
     return_all=True,
+    helper_script=f"cd ./",
     name="MetaFlow",
 )
 
