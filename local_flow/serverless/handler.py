@@ -20,11 +20,7 @@ SAGEMAKER_ENDPOINT_NAME = os.getenv('SAGEMAKER_ENDPOINT_NAME','intent-1624889175
 # print to AWS for debug!
 print(SAGEMAKER_ENDPOINT_NAME)
 # instantiate AWS client for invoking sagemaker endpoint
-runtime = boto3.client('runtime.sagemaker',
-                       aws_access_key_id=config['sagemaker']['SAGE_USER'],
-                       aws_secret_access_key=config['sagemaker']['SAGE_SECRET'],
-                       region_name=config['sagemaker'].get('SAGE_REGION', 'us-west-2')
-                       )
+runtime = boto3.client('runtime.sagemaker')
 
 
 def wrap_response(status_code: int, body: dict):
@@ -99,7 +95,6 @@ def predict(event, context):
     result = get_response_from_sagemaker(json.dumps(input_payload),
                                          SAGEMAKER_ENDPOINT_NAME,
                                          content_type='application/json')
-    result = {'predictions' : [[0.314]]}
     if result:
         # print for debugging in AWS Cloudwatch
         print(result)
