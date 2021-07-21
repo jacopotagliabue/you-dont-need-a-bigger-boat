@@ -7,7 +7,10 @@ import configparser
 import time
 import os
 
+from uuid import uuid4
+
 import gantry
+
 # link gantry to kinesis stream
 gantry.init(logs_location="firehose://gantry-demo-kinesis-stream")
 
@@ -87,7 +90,7 @@ def predict(event, context):
     session = session_str.split(',') if session_str != '' else []
 
     print(session)
-
+    session_id = str(uuid4())
     session = ['start'] + session + ['end']
 
     session_onehot = [ action_map[_] if _ in action_map else action_map['empty'] for _ in session]
@@ -98,15 +101,23 @@ def predict(event, context):
     if result:
         # print for debugging in AWS Cloudwatch
         print(result)
+
         # get the first item in the prediction array, as it is a 1-1 prediction
         response = result['predictions'][0][0]
+
+        # log predictions on gantry!
+        gantry.log_prediction_event(
+            "gantry_lambda_test",
+            inputs={'seq_length': len(session) },
+            outputs={"label": response },
+            feedback_id={'id': session_id }
+        )
 
     return wrap_response(status_code=200, body={
         "prediction": response,
         "time": time.time() - start,
         "endpoint": SAGEMAKER_ENDPOINT_NAME
     })
-
 
 
 if __name__ == '__main__':
