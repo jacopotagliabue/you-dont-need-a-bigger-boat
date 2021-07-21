@@ -1,8 +1,15 @@
+import sys
+sys.path.append('packages')
+
 import boto3
 import json
 import configparser
 import time
 import os
+
+import gantry
+# link gantry to kinesis stream
+gantry.init(logs_location="firehose://gantry-demo-kinesis-stream")
 
 
 # read config file
@@ -92,6 +99,7 @@ def predict(event, context):
     result = get_response_from_sagemaker(json.dumps(input_payload),
                                          SAGEMAKER_ENDPOINT_NAME,
                                          content_type='application/json')
+    result = {'predictions' : [[0.314]]}
     if result:
         # print for debugging in AWS Cloudwatch
         print(result)
