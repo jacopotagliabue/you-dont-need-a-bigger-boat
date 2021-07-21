@@ -127,6 +127,6 @@ performed the dataset upload into S3 as described above.
 
 - Test your endpoint by passing in click events as follows:
    ```
-   https://<SERVERLESS_ENDPOINT>/dev/predict?session=add,cart,view,remove
+   https://<SERVERLESS_ENDPOINT>/dev/predict?session=add,view,remove
    ```
 
