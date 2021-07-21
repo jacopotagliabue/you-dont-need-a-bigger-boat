@@ -31,5 +31,17 @@ functions:
               - Ref: AWS::Region
               - Ref: AWS::AccountId
               - endpoint/${opt:sagemaker}
+      - Effect: "Allow"
+        Action:
+          - firehose:PutRecordBatch
+        Resource:
+          Fn::Join:
+            - ':'
+            - - arn
+              - aws
+              - firehose
+              - Ref: AWS::Region
+              - Ref: AWS::AccountId
+              - deliverystream/${opt:gantry}
 plugins:
   - serverless-iam-roles-per-function
