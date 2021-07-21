@@ -17,6 +17,10 @@ from custom_decorators import pip, enable_decorator
 
 
 class CartFlow(FlowSpec):
+    """
+    CartFlow is a DAG that transforms session data, trains a cart-abandonment/purchase-intent
+     binary prediction model, and deploys the Keras model onto SageMaker.
+    """
 
     @step
     def start(self):
