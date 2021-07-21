@@ -2,24 +2,36 @@ AWS_CONFIG_PATH := $(HOME)/.aws
 METAFLOW_CONFIG_PATH := $(HOME)/.metaflowconfig
 
 DOCKER_TAG := metaflow-intent-prediction
+DOCKER_RUN_TAG := $(DOCKER_TAG)-run
+DOCKER_UPLOAD_TAG := $(DOCKER_TAG)-upload
+
 DOCKER_ARGS := --env-file .env \
 	--env USERNAME=$(USER) \
-	--volume $(AWS_CONFIG_PATH):/root/.aws \
-	--volume $(METAFLOW_CONFIG_PATH):/root/.metaflowconfig \
-	--volume /var/run/docker.sock:/var/run/docker.sock
+	--volume $(AWS_CONFIG_PATH):/root/.aws
+DOCKER_RUN_ARGS := $(DOCKER_ARGS) \
+	--volume $(METAFLOW_CONFIG_PATH):/root/.metaflowconfig
+DOCKER_UPLOAD_ARGS := $(DOCKER_ARGS) \
+	--volume $(shell pwd)/data:/data \
+	--env LOCAL_DATA_PATH=/data
 
 
-build:
-	docker build --tag $(DOCKER_TAG) .
+# Step 1: Data upload
+upload: upload.build
+	docker run --rm $(DOCKER_UPLOAD_ARGS) $(DOCKER_UPLOAD_TAG)
 
-start: build
-	docker run --rm $(DOCKER_ARGS) $(DOCKER_TAG)
+upload.build:
+	docker build --file docker/upload/Dockerfile --tag $(DOCKER_UPLOAD_TAG) .
 
-bash: build
-	docker run --rm -it $(DOCKER_ARGS) $(DOCKER_TAG) /bin/bash
+upload.bash: upload.build
+	docker run --rm -it $(DOCKER_UPLOAD_ARGS) $(DOCKER_UPLOAD_TAG) /bin/bash
 
-push_data_to_sf:
-	python3 -m venv .venv \
-	&& source .venv/bin/activate \
-	&& pip install -r requirements-data.txt \
-	&& python3 metaflow/data_processing/push_data_to_sf.py
+
+# Step 2: The whole #!
+run: run.build
+	docker run --rm $(DOCKER_RUN_ARGS) $(DOCKER_RUN_TAG)
+
+run.build:
+	docker build --file docker/run/Dockerfile --tag $(DOCKER_RUN_TAG) .
+
+run.bash: run.build
+	docker run --rm -it $(DOCKER_RUN_ARGS) $(DOCKER_RUN_TAG) /bin/bash
