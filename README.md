@@ -26,6 +26,12 @@ room for disagreement over tool X or tool Y, we believe the general principles t
 scenarios, there is a world of exciting machine learning at scale for sophisticated practitioners who don't want to
 waste their time managing cloud resources.
 
+*Note #1*: while the code is provided as an end-to-end solution, we may sacrifice some terseness for clarity / pedagogical reasons.
+
+*Note #2*: when we say the pipeline is an "end-to-end solution", we *mean* it - it goes from millions of raw events
+to a working endpoint that you can ping. As such, there are *many* moving pieces and it may take a while to understand how all of it works and how
+all the pieces fit together: we are doing what we can to explain and document everything (a blog post is forthcoming!), but this is not _per se_ a 10 minutes [tutorial on Metaflow](https://towardsdatascience.com/noops-machine-learning-3893a42e32a4?gi=5ebb644fa4ff); however, if you wonder how popular tools can be put to work in a real scenario, this repository provides a stack tried and tested at [unicorn](https://en.wikipedia.org/wiki/Unicorn_(finance)) scale.
+
 ## Overview
 The repo shows how several (mostly open-source) tools can be effectively combined together to run data pipelines. The
 project current features:
@@ -56,6 +62,8 @@ The parallelism between the two scenarios should be pretty clear by looking at t
 all the tools for the first time, we suggest you to start from the _Metaflow_ version and then move to the full-scale one
 when all the pieces of the puzzle are well understood.
 
+*Note*: if you are new to Metaflow, we recommend you to go through the [official installation](https://docs.metaflow.org/getting-started/install) and this  [stand-alone tutorial](https://github.com/jacopotagliabue/no-ops-machine-learning) first.
+
 ### Relevant Material
 
 If you want to know more, you can give a look at the following material:
@@ -82,7 +90,6 @@ TO-DOs:
 * finish feature store and gantry integration;
 * add Github Action flow;
 * continue improving the DAG card project.
-
 
 ## Setup
  
