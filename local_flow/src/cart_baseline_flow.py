@@ -34,7 +34,8 @@ class CartFlow(FlowSpec):
         # Call next step in DAG with self.next(...)
         self.next(self.process_raw_data)
 
-    @enable_decorator(batch(gpu=1, cpu=8, image=os.getenv('RAPIDS_IMAGE'), memory=80000),
+    # These compute requirements are compatible with p3.2xlarge (https://www.amazonaws.cn/en/ec2/instance-types/)
+    @enable_decorator(batch(gpu=1, cpu=8, memory=60000, image=os.getenv('RAPIDS_IMAGE')),
                       flag=os.getenv('EN_BATCH'))
     @environment(vars={'RAPIDS_IMAGE': os.getenv('RAPIDS_IMAGE'),
                        'PARQUET_S3_PATH': os.getenv('PARQUET_S3_PATH'),
