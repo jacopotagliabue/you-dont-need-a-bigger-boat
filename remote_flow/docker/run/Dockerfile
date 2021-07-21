@@ -28,4 +28,4 @@ ENV METAFLOW_HOME=/root/.metaflowconfig
 ENV DBT_PROFILES_DIR=/root/.dbt
 
 
-CMD [ "python", "./prefect_run_agent.py" ]
+CMD [ "python", "./prefect/run_agent.py" ]
