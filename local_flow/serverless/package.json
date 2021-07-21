@@ -1,0 +1,12 @@
+{
+  "name": "intent-endpoint",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "serverless": "^2.51.2",
+    "serverless-iam-roles-per-function": "^3.2.0"
+  }
+}
