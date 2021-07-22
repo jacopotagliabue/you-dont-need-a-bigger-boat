@@ -5,7 +5,7 @@
 
 We use [Prefect](https://www.prefect.io) to orchestrate the different steps of our pipeline. Each Prefect run will be a DAG with the following steps:
 
-1. Data preparation using [dt](https://www.getdbt.com).
+1. Data preparation using [dbt](https://www.getdbt.com).
 2. Data validation using [Great Expectations](https://greatexpectations.io).
 3. Model training using [Metaflow](https://metaflow.org) and tracked through [Weights&Biases](https://wandb.ai) and Gantry (coming soon!).
 4. Model deployment using SageMaker, with a Lambda-based wrapper around it (deployed with [Serverless](https://www.serverless.com)).
@@ -285,12 +285,12 @@ INFO - agent | Deploying flow run c5f18c7f-bd3d-47d8-94ad-c6096608ddfe to execut
 INFO - agent | Completed deployment of flow run c5f18c7f-bd3d-47d8-94ad-c6096608ddfe
 ```
 
-You can now monitor your task from Prefect.
+You can now monitor your run from Prefect UI in the cloud.
 
 
 ### 3. Testing the endpoint
 
-Once the flow has successfully completed you can query your endpoint as follows:
+Once the flow has successfully completed, you can query your endpoint as follows:
 
 ```
 $ curl https://<your-endpoint>/dev/predict?x=start,view,add,view,view,view,detail,view,end
