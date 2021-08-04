@@ -2,8 +2,8 @@ service: metaflow-intent-remote-endpoint
 
 provider:
   name: aws
-  runtime: python3.7
-  stage: dev
+  runtime: python3.8
+  stage: ${env:STAGE, 'dev'}
   region: ${env:AWS_DEFAULT_REGION, 'us-west-2'}
   lambdaHashingVersion: 20201221
 

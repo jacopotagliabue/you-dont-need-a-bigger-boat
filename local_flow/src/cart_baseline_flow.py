@@ -54,10 +54,14 @@ class CartFlow(FlowSpec):
         from metaflow.metaflow_config import DATATOOLS_S3ROOT
 
         # get dataset S3 paths
-        DATASET_PATH = os.path.join(DATATOOLS_S3ROOT, os.getenv('PARQUET_S3_PATH'))
-        SEARCH_TRAIN_PATH =  os.path.join(DATASET_PATH, get_filename(os.getenv('SEARCH_TRAIN_PATH')) + '.parquet')
-        BROWSING_TRAIN_PATH = os.path.join(DATASET_PATH, get_filename(os.getenv('BROWSING_TRAIN_PATH')) + '.parquet')
-        SKU_TO_CONTENT_PATH = os.path.join(DATASET_PATH, get_filename(os.getenv('SKU_TO_CONTENT_PATH')) + '.parquet')
+        DATASET_PATH = os.path.join(
+            DATATOOLS_S3ROOT, os.getenv('PARQUET_S3_PATH'))
+        SEARCH_TRAIN_PATH = os.path.join(DATASET_PATH, get_filename(
+            os.getenv('SEARCH_TRAIN_PATH')) + '.parquet')
+        BROWSING_TRAIN_PATH = os.path.join(DATASET_PATH, get_filename(
+            os.getenv('BROWSING_TRAIN_PATH')) + '.parquet')
+        SKU_TO_CONTENT_PATH = os.path.join(DATASET_PATH, get_filename(
+            os.getenv('SKU_TO_CONTENT_PATH')) + '.parquet')
 
         # process raw data
         processed_data = process_raw_data(search_train_path=SEARCH_TRAIN_PATH,
@@ -96,7 +100,8 @@ class CartFlow(FlowSpec):
         """
         from prepare_dataset import prepare_dataset
 
-        self.dataset = prepare_dataset(training_file=self.data_paths['browsing_train'], K=300000)
+        self.dataset = prepare_dataset(
+            training_file=self.data_paths['browsing_train'], K=300000)
 
         self.next(self.get_model_config)
 
@@ -112,11 +117,11 @@ class CartFlow(FlowSpec):
         self.config = return_json_file_content(os.getenv('MODEL_CONFIG_PATH'))
         self.next(self.train_model)
 
-
     # @batch decorator used to run step on AWS Batch
     # wrap batch in a switch to allow easy local testing
+
     @enable_decorator(batch(gpu=1, cpu=8, image=os.getenv('BASE_IMAGE')),
-                     flag=os.getenv('EN_BATCH'))
+                      flag=os.getenv('EN_BATCH'))
     # @ environment decorator used to pass environment variables to Batch instance
     @environment(vars={'WANDB_API_KEY': os.getenv('WANDB_API_KEY'),
                        'WANDB_ENTITY': os.getenv('WANDB_ENTITY'),

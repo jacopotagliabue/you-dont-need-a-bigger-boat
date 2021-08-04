@@ -7,7 +7,7 @@ import csv
 import pandas as pd
 
 
-def prepare_dataset(training_file:str, K:int = None):
+def prepare_dataset(training_file: str, K: int = None):
     """
     Entry point for data preparation step
 
@@ -18,7 +18,8 @@ def prepare_dataset(training_file:str, K:int = None):
     sessions = read_sessions_from_training_file(training_file, K)
     x, y = prepare_training_data(sessions)
 
-    return {'X' : x, 'y': y}
+    return {'X': x, 'y': y}
+
 
 def read_sessions_from_training_file(training_file: str, K: int = None):
     """
@@ -68,7 +69,8 @@ def session_indexed(s: list):
     :return: list of actions as indices
     """
     # assign an integer to each possible action token
-    action_to_idx = {'start': 0, 'end': 1, 'add': 2, 'remove': 3, 'purchase': 4, 'detail': 5, 'view': 6}
+    action_to_idx = {'start': 0, 'end': 1, 'add': 2,
+                     'remove': 3, 'purchase': 4, 'detail': 5, 'view': 6}
     return [action_to_idx['start']] + [action_to_idx[e] for e in s] + [action_to_idx['end']]
 
 
@@ -89,7 +91,7 @@ def prepare_training_data(sessions: list):
             p_session = s
             # truncate session if multiple purchase actions in a session
             if s.count('purchase') > 1:
-                second_purchase = s.index('purchase', first_purchase+1)
+                second_purchase = s.index('purchase', first_purchase + 1)
                 p_session = s[:second_purchase]
             # remove actual purchase from list
             p_session.pop(first_purchase)
@@ -108,7 +110,7 @@ def prepare_training_data(sessions: list):
     x = purchase_sessions + abandon_sessions
 
     # give label=1 for purchase, label=0 for abandon
-    y = [1]*len(purchase_sessions) + [0]*len(abandon_sessions)
+    y = [1] * len(purchase_sessions) + [0] * len(abandon_sessions)
     assert len(x) == len(y)
 
     return x, y

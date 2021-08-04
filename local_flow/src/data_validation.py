@@ -35,18 +35,19 @@ def validate_data(run_id: int, flow_name: str, data_paths: dict):
         context.run_checkpoint(checkpoint_name='intent_checkpoint',
                                # runtime batch request
                                batch_request={
-                                    'datasource_name': 's3_parquet',
-                                    'data_connector_name': 'runtime_data_connector',
-                                    'data_asset_name': data_name,
-                                    'runtime_parameters': {
+                                   'datasource_name': 's3_parquet',
+                                   'data_connector_name': 'runtime_data_connector',
+                                   'data_asset_name': data_name,
+                                   'runtime_parameters': {
                                        'batch_data': data  # bug in ge/arrow prevents it from reading parquet directly
-                                    },
-                                    'batch_identifiers': {
-                                        "run_id": run_id,
-                                        "data_name": data_name
-                                    }
+                                   },
+                                   'batch_identifiers': {
+                                       "run_id": run_id,
+                                       "data_name": data_name
+                                   }
                                },
-                               run_name='-'.join([flow_name, run_id, data_name]),
+                               run_name='-'.join([flow_name,
+                                                 str(run_id), data_name]),
                                run_time=datetime.utcnow(),
                                # use name of data to select expectation suite
                                expectation_suite_name=data_name)

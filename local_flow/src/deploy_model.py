@@ -12,7 +12,7 @@ import tensorflow as tf
 from sagemaker.tensorflow import TensorFlowModel
 
 
-def tf_model_to_tar(tf_model, run_id:int, ):
+def tf_model_to_tar(tf_model, run_id: int, ):
     """
     Saves tensorflow model as compressed file
 
@@ -28,11 +28,12 @@ def tf_model_to_tar(tf_model, run_id:int, ):
     tf_model.save(filepath=model_name)
     # save model as .tar.gz
     with tarfile.open(local_tar_name, mode="w:gz") as _tar:
-      _tar.add(model_name, recursive=True)
+        _tar.add(model_name, recursive=True)
     # remove local model
     shutil.rmtree(model_name.split('/')[0])
 
     return local_tar_name
+
 
 def deploy_model(model_s3_path: str):
     """
@@ -50,15 +51,15 @@ def deploy_model(model_s3_path: str):
 
     # create sagemaker tf model
     model = TensorFlowModel(
-      model_data=model_s3_path,
-      image_uri=os.getenv('DOCKER_IMAGE'),
-      role=os.getenv('IAM_SAGEMAKER_ROLE'))
+        model_data=model_s3_path,
+        image_uri=os.getenv('DOCKER_IMAGE'),
+        role=os.getenv('IAM_SAGEMAKER_ROLE'))
 
     # deploy sagemaker model
     predictor = model.deploy(
-      initial_instance_count=1,
-      instance_type=os.getenv('SAGEMAKER_INSTANCE'),
-      endpoint_name=endpoint_name)
+        initial_instance_count=1,
+        instance_type=os.getenv('SAGEMAKER_INSTANCE'),
+        endpoint_name=endpoint_name)
 
     # prepare a test input and check response
     test_inp = {'instances': tf.one_hot(np.array([[0, 1, 1, 3, 4, 5]]),

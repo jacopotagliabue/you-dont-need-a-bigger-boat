@@ -1,0 +1,20 @@
+{{! One-line RST Docstring Template }}
+{{summaryPlaceholder}}
+
+{{extendedSummaryPlaceholder}}
+
+{{#args}}
+:param {{typePlaceholder}} {{var}}: {{descriptionPlaceholder}}
+{{/args}}
+{{#kwargs}}
+:param {{typePlaceholder}} {{var}}: {{descriptionPlaceholder}}, defaults to {{&default}}
+{{/kwargs}}
+{{#exceptions}}
+:raises {{type}}: {{descriptionPlaceholder}}
+{{/exceptions}}
+{{#returns}}
+:return {{typePlaceholder}}: {{descriptionPlaceholder}}
+{{/returns}}
+{{#yields}}
+:yield {{typePlaceholder}}: {{descriptionPlaceholder}}
+{{/yields}}

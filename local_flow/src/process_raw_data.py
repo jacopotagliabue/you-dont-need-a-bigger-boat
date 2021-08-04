@@ -18,6 +18,7 @@ def read_from_parquet(path, limit=None):
         df = cudf.DataFrame.from_pandas(df)
     return df
 
+
 def return_df(df):
     if CUDF_AVAIL:
         df = df.to_pandas()
@@ -39,7 +40,8 @@ def process_raw_data(search_train_path, browsing_train_path, sku_to_content_path
     df_sku_to_content = process_sku_to_content(sku_to_content_path)
 
     # reutrn dict of processed data with name, only browsing_train for now
-    return {'browsing_train' : df_browsing_train}
+    return {'browsing_train': df_browsing_train}
+
 
 def process_search_train(search_train_path):
     print('Processing {}'.format(search_train_path))
@@ -50,14 +52,16 @@ def process_search_train(search_train_path):
     print('\n')
     return return_df(df)
 
+
 def process_browsing_train(browsing_train_path):
     print('Processing {}'.format(browsing_train_path))
 
     # 30M seems to exceed some memory limit; take 1M rows for now
     df = read_from_parquet(browsing_train_path, limit=1000000)
     # select important columns only
-    df = df[['session_id_hash', 'event_type', 'product_action', 'server_timestamp_epoch_ms']]
-    df['product_action'].fillna(value='',inplace=True)
+    df = df[['session_id_hash', 'event_type',
+             'product_action', 'server_timestamp_epoch_ms']]
+    df['product_action'].fillna(value='', inplace=True)
     print(df.shape)
 
     # peek at raw data
@@ -70,10 +74,11 @@ def process_browsing_train(browsing_train_path):
     df = df.reset_index(drop=True)
 
     # check sorting
-    print(df[['session_id_hash','server_timestamp_epoch_ms']].head(10))
+    print(df[['session_id_hash', 'server_timestamp_epoch_ms']].head(10))
     print('\n')
 
     return return_df(df)
+
 
 def process_sku_to_content(sku_to_content_path):
     print('Processing {}'.format(sku_to_content_path))

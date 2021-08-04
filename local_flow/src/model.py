@@ -42,10 +42,10 @@ def train_lstm_model(x, y,
     print("Starting training now...")
 
     # train & test splits
-    X_train, X_test, y_train, y_test = train_test_split(x,y)
+    X_train, X_test, y_train, y_test = train_test_split(x, y)
     # pad sequences for training in batches
     max_len = max(len(_) for _ in x)
-    X_train = pad_sequences(X_train, padding="post",value=7, maxlen=max_len)
+    X_train = pad_sequences(X_train, padding="post", value=7, maxlen=max_len)
     X_test = pad_sequences(X_test, padding="post", value=7, maxlen=max_len)
 
     # convert to one-hot
@@ -57,11 +57,11 @@ def train_lstm_model(x, y,
 
     # Define Model
     model = keras.Sequential()
-    model.add(keras.layers.InputLayer(input_shape=(None,7)))
+    model.add(keras.layers.InputLayer(input_shape=(None, 7)))
     # Masking layer ignores padded time-steps
     model.add(keras.layers.Masking())
     model.add(keras.layers.LSTM(lstm_dim))
-    model.add(keras.layers.Dense(1,activation='sigmoid'))
+    model.add(keras.layers.Dense(1, activation='sigmoid'))
     model.summary()
 
     # Some Hyper Params
@@ -79,8 +79,8 @@ def train_lstm_model(x, y,
                   metrics=['accuracy'])
 
     # Train Model
-    model.fit(X_train,y_train,
-              validation_data=(X_test,y_test),
+    model.fit(X_train, y_train,
+              validation_data=(X_test, y_test),
               batch_size=batch_size,
               epochs=epochs,
               callbacks=callbacks)
@@ -88,6 +88,7 @@ def train_lstm_model(x, y,
     # return trained model
     # NB: to store model as Metaflow Artifact it needs to be pickle-able!
     return model.to_json(), model.get_weights()
+
 
 def make_predictions(model, model_weights, test_file: str):
     """
@@ -112,7 +113,7 @@ def make_predictions(model, model_weights, test_file: str):
         actions = []
         for e in session:
             # NB : we are disregarding search actions here
-            if e['product_action'] == None and e['event_type'] ==  'pageview':
+            if e['product_action'] == None and e['event_type'] == 'pageview':
                 actions.append('view')
             elif e['product_action'] != None:
                 actions.append(e['product_action'])
@@ -120,16 +121,16 @@ def make_predictions(model, model_weights, test_file: str):
 
     # Convert to index, pad & one-hot
     max_len = max([len(_) for _ in X_test])
-    X_test = [ session_indexed(_) for _ in X_test]
+    X_test = [session_indexed(_) for _ in X_test]
     X_test = pad_sequences(X_test, padding="post", value=7, maxlen=max_len)
     X_test = tf.one_hot(X_test, depth=7)
 
     # make predictions
-    preds = model.predict(X_test,batch_size=128)
+    preds = model.predict(X_test, batch_size=128)
     preds = (preds > 0.5).reshape(-1).astype(int).tolist()
 
     # Convert to required prediction format
-    preds = [ {'label':pred} for pred in preds]
+    preds = [{'label': pred} for pred in preds]
 
     assert len(preds) == len(test_queries)
 

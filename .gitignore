@@ -136,7 +136,11 @@ dmypy.json
 *.ini
 
 #SERVERLESS STUFF
+node_modules/
 admin.env
 .env
 _meta
 .serverless
+
+# Misc
+.DS_Store

@@ -1,26 +1,21 @@
-import boto3
-import json
-import configparser
-import time
 import os
+import json
+import time
+import boto3
+from typing import Dict, Any, Union, IO
 
 
-# read config file
-config = configparser.ConfigParser()
-config.read('settings.ini')
 # grab environment variables
-SAGEMAKER_ENDPOINT_NAME = os.getenv('SAGEMAKER_ENDPOINT_NAME','intent-1624889175387-endpoint')
+SAGEMAKER_ENDPOINT_NAME = os.getenv(
+    'SAGEMAKER_ENDPOINT_NAME', 'intent-1624889175387-endpoint')
 # print to AWS for debug!
 print(SAGEMAKER_ENDPOINT_NAME)
 # instantiate AWS client for invoking sagemaker endpoint
-runtime = boto3.client('runtime.sagemaker',
-                       aws_access_key_id=config['sagemaker']['SAGE_USER'],
-                       aws_secret_access_key=config['sagemaker']['SAGE_SECRET'],
-                       region_name=config['sagemaker'].get('SAGE_REGION', 'us-west-2')
-                       )
+runtime = boto3.client('sagemaker-runtime')
 
 
-def wrap_response(status_code: int, body: dict):
+def wrap_response(status_code: int,
+                  body: Dict[Any, Any]) -> Dict[str, Any]:
     """
     Small function to wrap the model response in an actual API response (status, body, headers).
 
@@ -29,11 +24,14 @@ def wrap_response(status_code: int, body: dict):
     :return:
     """
     return {
+        'cookies': [''],
+        'isBase64Encoded': False,
         'statusCode': status_code,
-        'body': json.dumps(body),
         'headers': {
-            'Access-Control-Allow-Origin': '*'  # this makes the function callable across domains!
-        }
+            # this makes the function callable across domains!
+            'Access-Control-Allow-Origin': '*'
+        },
+        'body': json.dumps(body),
     }
 
 
@@ -56,7 +54,8 @@ def get_response_from_sagemaker(model_input: str,
     return json.loads(response['Body'].read().decode())
 
 
-def predict(event, context):
+def predict(event: Dict[str, Any],
+            context: Any) -> Dict[str, Any]:
     """
     AWS lambda function, to handle incoming GET requests asking our model for predictions.
 
@@ -66,31 +65,35 @@ def predict(event, context):
     """
     # static "feature store"
     action_map = {
-        'start' : [1,0,0,0,0,0,0],
-        'end' : [0,1,0,0,0,0,0],
-        'add' : [0,0,1,0,0,0,0],
-        'remove' : [0,0,0,1,0,0,0],
-        'purchase' : [0,0,0,0,1,0,0],
-        'detail' : [0,0,0,0,0,1,0],
-        'view' : [0,0,0,0,0,0,1],
-        'empty' : [0,0,0,0,0,0,0]
+        'start': [1, 0, 0, 0, 0, 0, 0],
+        'end': [0, 1, 0, 0, 0, 0, 0],
+        'add': [0, 0, 1, 0, 0, 0, 0],
+        'remove': [0, 0, 0, 1, 0, 0, 0],
+        'purchase': [0, 0, 0, 0, 1, 0, 0],
+        'detail': [0, 0, 0, 0, 0, 1, 0],
+        'view': [0, 0, 0, 0, 0, 0, 1],
+        'empty': [0, 0, 0, 0, 0, 0, 0]
     }
 
     print("Received event: " + json.dumps(event))
-    params = event['queryStringParameters']
+    params = event.get('queryStringParameters', {})
     response = dict()
     start = time.time()
-    session_str = params.get('session','')
+    session_str = params.get('session', '')
     session = session_str.split(',') if session_str != '' else []
 
     print(session)
 
     session = ['start'] + session + ['end']
 
-    session_onehot = [ action_map[_] if _ in action_map else action_map['empty'] for _ in session]
-    input_payload = { 'instances': [ session_onehot ] }  # input is array of array, even if we just ask for 1 prediction here
-    result = get_response_from_sagemaker(json.dumps(input_payload),
-                                         SAGEMAKER_ENDPOINT_NAME,
+    session_onehot = [
+        action_map[_] if _ in action_map else action_map['empty']
+        for _ in session
+    ]
+    # input is array of array, even if we just ask for 1 prediction here
+    input_payload = {'instances': [session_onehot]}
+    result = get_response_from_sagemaker(model_input=json.dumps(input_payload),
+                                         endpoint_name=SAGEMAKER_ENDPOINT_NAME,
                                          content_type='application/json')
     if result:
         # print for debugging in AWS Cloudwatch
@@ -98,21 +101,23 @@ def predict(event, context):
         # get the first item in the prediction array, as it is a 1-1 prediction
         response = result['predictions'][0][0]
 
-    return wrap_response(status_code=200, body={
+    return wrap_response(200, {
         "prediction": response,
         "time": time.time() - start,
         "endpoint": SAGEMAKER_ENDPOINT_NAME
     })
 
 
-
 if __name__ == '__main__':
-    input_payload = { 'instances' : [
-                                     [[1, 0, 0, 0, 0, 0, 0],
-                                      [0, 0, 0, 0, 1, 0, 0]],
-                                     ]
-                    }
-    result = get_response_from_sagemaker(json.dumps(input_payload),
-                                SAGEMAKER_ENDPOINT_NAME,
-                                content_type='application/json')
+    input_payload = {
+        'instances': [
+            [
+                [1, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 1, 0, 0]
+            ],
+        ]
+    }
+    result = get_response_from_sagemaker(model_input=json.dumps(input_payload),
+                                         endpoint_name=SAGEMAKER_ENDPOINT_NAME,
+                                         content_type='application/json')
     print(result)

@@ -1,0 +1,4 @@
+boto3-stubs[s3,sagemaker-runtime,sagemaker,firehose,kinesis]
+pytest
+pytest-xdist
+pytest-cov
