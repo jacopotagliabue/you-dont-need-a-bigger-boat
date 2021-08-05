@@ -20,6 +20,26 @@ As seen in the above diagram, there are four main steps in the flow:
 
 [comment]: <> (   Gantry is used here for model monitoring.)
 
+## Environment
+
+We suggest the use of `virtualenv` to organize dependencies.
+
+A `Makefile` has also been provided to help you launch the proper commands.
+
+
+To create a virtualenv for the local flow:
+
+1. `cd` into the `local_flow` directory
+2. Create the virtualenv with the following command
+
+```
+$ python -m venv local-flow-env
+```
+3. Activate the venv with the following command
+
+```
+$ source local-flow-env/bin/activate
+```
 
 ## Requirements / Prerequisites
 
@@ -31,6 +51,10 @@ We describe the basic setup required to run this flow, and the environment varia
 ### Packages
 
 - Install required python packages as per `requirements.txt` in `local_flow`;
+
+```
+$ pip3 install -r requirements.txt
+```
 
 [comment]: <> (- Install Gantry as per the gantry [guide]&#40;https://docs.gantry.io/en/latest/how-to/installation.html&#41;.)
 
@@ -74,7 +98,7 @@ configured for use with Metaflow (i.e. `METAFLOW_DATATOOLS_SYSROOT_S3`).
 - Execute the following to upload the dataset (this might take a while depending
   on your internet connection):
   ```
-  METAFLOW_PROFILE=metaflow python local_dataset_upload.py
+    $ METAFLOW_PROFILE=metaflow make upload
   ```
 
 ### ML Model Configuration
@@ -101,32 +125,29 @@ performed the dataset upload into S3 as described above.
 
 - Execute from the directory `local_flow`;
 - Due to Great Expectations, `--no-pylint` flag is required;
-- Execute the following to initate a run:
+- Execute the following to initiate a run:
 
   ```
-    python src/cart_baseline_flow.py --no-pylint run --max-workers 8
+  $ make run
   ```
 - You can also specify the Metaflow profile associated with your Metaflow setup as per the main README:
 
   ```
-    METAFLOW_PROFILE=<METAFLOW_PROFILE_NAME> python src/cart_baseline_flow.py --no-pylint run --max-workers 8
+  $ METAFLOW_PROFILE=<METAFLOW_PROFILE_NAME> make run
   ```
 
 ### Running Serverless
 -  Once the flow is completed, we can expose the SageMaker model via a serverless endpoint;
 -  Obtain `SAGE_MAKER_ENDPOINT_NAME` from output of `deploy` step in Metaflow;
-- `cd` into serverless folder;
 -  Execute the following:
-   ```
-   serverless deploy --sagemaker <SAGEMAKER_ENDPOINT_NAME>
-   ```
+    ```
+    $ SAGEMAKER_ENDPOINT_NAME=<SAGEMAKER_ENDPOINT_NAME> make deploy
+    ```
 - You can also specify an AWS profile that is configured with the required permissions for serverless:
   ```
-  serverless deploy --sagemaker <SAGEMAKER_ENDPOINT_NAME> --aws-profile <AWS_SERVERLESS_PROFILE>
+  $ AWS_PROFILE=<AWS_SERVERLESS_PROFILE> SAGEMAKER_ENDPOINT_NAME=<SAGEMAKER_ENDPOINT_NAME> make deploy
   ```
-
 - Test your endpoint by passing in click events as follows:
    ```
    https://<SERVERLESS_ENDPOINT>/dev/predict?session=add,view,remove
    ```
-
