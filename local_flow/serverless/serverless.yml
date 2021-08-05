@@ -3,7 +3,7 @@ service: intent-prediction-endpoint
 provider:
   name: aws
   runtime: python3.8
-  stage: ${env:STAGE, 'dev'}
+  stage: ${env:SLS_STAGE, 'dev'}
   region: ${env:AWS_DEFAULT_REGION, 'us-west-2'}
   lambdaHashingVersion: 20201221
 
