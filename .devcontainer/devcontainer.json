@@ -20,12 +20,15 @@
     }
   },
   "containerEnv": {
-    "PYTHONDONTWRITEBYTECODE": "1"
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "USER": "${localEnv:USER}",
+    "USERNAME": "${localEnv:USER}"
   },
   "workspaceFolder": "/app",
   "workspaceMount": "source=${localWorkspaceFolder},target=/app,type=bind,consistency=delegated",
   "mounts": [
     "source=${localEnv:HOME}/.aws,target=/root/.aws,readonly,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.metaflowconfig,target=/root/.metaflowconfig,readonly,type=bind,consistency=cached",
     "source=metaflow-intent-prediction-local-serverless-node_modules,target=${containerWorkspaceFolder}/local_flow/serverless/node_modules,type=volume",
     "source=metaflow-intent-prediction-mypy,target=${containerWorkspaceFolder}/.mypy_cache,type=volume",
     "source=metaflow-intent-prediction-pytest,target=${containerWorkspaceFolder}/.pytest_cache,type=volume",
