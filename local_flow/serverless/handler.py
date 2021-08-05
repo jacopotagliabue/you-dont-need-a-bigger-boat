@@ -6,8 +6,7 @@ from typing import Dict, Any, Union, IO
 
 
 # grab environment variables
-SAGEMAKER_ENDPOINT_NAME = os.getenv(
-    'SAGEMAKER_ENDPOINT_NAME', 'intent-1624889175387-endpoint')
+SAGEMAKER_ENDPOINT_NAME = os.getenv('SAGEMAKER_ENDPOINT_NAME')
 # print to AWS for debug!
 print(SAGEMAKER_ENDPOINT_NAME)
 # instantiate AWS client for invoking sagemaker endpoint
@@ -24,8 +23,6 @@ def wrap_response(status_code: int,
     :return:
     """
     return {
-        'cookies': [''],
-        'isBase64Encoded': False,
         'statusCode': status_code,
         'headers': {
             # this makes the function callable across domains!
