@@ -104,10 +104,9 @@ def predict(event, context):
 
         # get the first item in the prediction array, as it is a 1-1 prediction
         response = result['predictions'][0][0]
-
         # log predictions on gantry!
         gantry.log_prediction_event(
-            "gantry_lambda_test",
+            "gantry_local_flow_test",
             inputs={'seq_length': len(session) },
             outputs={"label": response },
             feedback_id={'id': session_id }

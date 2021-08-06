@@ -172,32 +172,20 @@ class CartFlow(FlowSpec):
                                                           lstm_dim=self.config['LSTM_DIMS'],
                                                           batch_size=self.config['BATCH_SIZE'],
                                                           lr=self.config['LEARNING_RATE'])
-        self.next(self.gantry_init)
+        self.next(self.gantry_reference)
 
     @step
-    def gantry_init(self):
-        """
-        Skip Gantry Step for now
-        """
-        # from gantry.summarize import SummarizationContext
-        # import tensorflow as tf
-        # import pandas as pd
-        # import gantry.sdk as gantry_sdk
-        # from tensorflow.keras.preprocessing.sequence import pad_sequences
-        # from tensorflow.keras.models import model_from_json
-        # gantry_sdk.init()
-        # with SummarizationContext("loan_pred") as ctx:
-        #     tf_model = model_from_json(self.model)
-        #     tf_model.set_weights(self.model_weights)
-        #
-        #     max_len = max(len(_) for _ in self.dataset['X'])
-        #     x = pad_sequences(self.dataset['X'], padding="post", value=7, maxlen=max_len)
-        #     x = tf.one_hot(x, depth=7)
-        #     predictions = tf_model.predict(x)
-        #     ctx.register(inputs=pd.DataFrame({'seq_length':[len(_) for _ in self.dataset['X']]}), outputs=predictions)
-        #     gantry_sdk.set_reference(ctx)
+    def gantry_reference(self):
+      """
+      Set reference of training distribution in Gantry
+      """
+      from gantry_reference import gantry_reference
 
-        self.next(self.deploy)
+      gantry_reference(inputs=self.dataset['X'],
+                       outputs=self.dataset['y'],
+                       backend=os.getenv('GANTRY_BACKEND'))
+
+      self.next(self.deploy)
 
     @step
     def deploy(self):
