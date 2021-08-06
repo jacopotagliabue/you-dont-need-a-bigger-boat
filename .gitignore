@@ -131,6 +131,7 @@ dmypy.json
 .idea/
 .metaflow/
 */wandb
+/local_flow/data/*.csv
 /remote_flow/data/*.csv
 
 *.ini

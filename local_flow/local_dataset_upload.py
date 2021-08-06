@@ -3,8 +3,12 @@
 Upload local .csv dataset as .parquet in S3
 
 """
-from dotenv import load_dotenv
-load_dotenv('.env')
+# Load env variables
+try:
+    from dotenv import load_dotenv
+    load_dotenv('.env')
+except Exception as e:
+    print(e)
 
 import os
 from typing import Optional, List
@@ -29,17 +33,19 @@ def upload_file_as_parquet(file_path: str,
         df_content = pd.read_csv(file_path)
 
     print('Begin upload to S3')
-    df_content.to_parquet(path=s3_file_name, engine='pyarrow',
+    df_content.to_parquet(path=s3_file_name,
+                          engine='pyarrow',
                           partition_cols=partition_cols)
 
     print('Parquet files for {} stored at : {}'.format(file_path, s3_file_name))
 
 
 if __name__ == '__main__':
-    SKU_TO_CONTENT_PATH = os.getenv('SKU_TO_CONTENT_PATH')
-    BROWSING_TRAIN_PATH = os.getenv('BROWSING_TRAIN_PATH')
-    SEARCH_TRAIN_PATH = os.getenv('SEARCH_TRAIN_PATH')
-    PARQUET_S3_PATH = os.getenv('PARQUET_S3_PATH')
+    PARQUET_S3_PATH = os.environ['PARQUET_S3_PATH']
+    LOCAL_DATA_PATH = os.environ['LOCAL_DATA_PATH']
+    SKU_TO_CONTENT_PATH = os.path.join(LOCAL_DATA_PATH, 'sku_to_content.csv')
+    BROWSING_TRAIN_PATH = os.path.join(LOCAL_DATA_PATH, 'browsing_train.csv')
+    SEARCH_TRAIN_PATH = os.path.join(LOCAL_DATA_PATH, 'search_train.csv')
     TARGET_S3_PATH = os.path.join(DATATOOLS_S3ROOT, PARQUET_S3_PATH)
 
     # upload to S3 at some know path under the CartFlow directory
