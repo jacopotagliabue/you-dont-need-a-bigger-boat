@@ -4,6 +4,8 @@ Train and LSTM model for intent prediction with using Weights & Biases for track
 
 """
 
+from typing import Tuple, Any, List, Dict
+
 import numpy as np
 import tensorflow as tf
 import tensorflow.keras as keras
@@ -17,12 +19,12 @@ from prepare_dataset import session_indexed
 from utils import return_json_file_content
 
 
-def train_lstm_model(x, y,
-                     epochs=200,
-                     patience=10,
-                     lstm_dim=48,
-                     batch_size=128,
-                     lr=1e-3):
+def train_lstm_model(x: List[List[int]], y: List[int],
+                     epochs: int = 200,
+                     patience: int = 10,
+                     lstm_dim: int = 48,
+                     batch_size: int = 128,
+                     lr: float = 1e-3) -> Tuple[str, Any]:
     """
     Train an LSTM to predict purchase (1) or abandon (0)
 
@@ -90,7 +92,7 @@ def train_lstm_model(x, y,
     return model.to_json(), model.get_weights()
 
 
-def make_predictions(model, model_weights, test_file: str):
+def make_predictions(model, model_weights, test_file: str) -> List[Dict[str, float]]:
     """
     Made predictions given a data challenge test file
 
@@ -105,12 +107,12 @@ def make_predictions(model, model_weights, test_file: str):
 
     # load test data
     test_queries = return_json_file_content(test_file)
-    X_test = []
+    X_test: List[List[str]] = []
 
     # extract actions from test input
     for t in test_queries:
         session = t['query']
-        actions = []
+        actions: List[str] = []
         for e in session:
             # NB : we are disregarding search actions here
             if e['product_action'] == None and e['event_type'] == 'pageview':

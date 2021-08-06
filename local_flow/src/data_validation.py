@@ -5,9 +5,12 @@ Perform data validation over transformed data using Great Expectations including
 """
 
 import sys
+from typing import Dict
+from datetime import datetime
+
 import pandas as pd
 import great_expectations as ge
-from datetime import datetime
+
 
 # add great_expectations/plugins to path
 sys.path.append('great_expectations')
@@ -15,7 +18,9 @@ sys.path.append('great_expectations')
 from plugins.custom_expectation import ExpectAverageSessionLengthToBeBetween
 
 
-def validate_data(run_id: int, flow_name: str, data_paths: dict):
+def validate_data(run_id: str,
+                  flow_name: str,
+                  data_paths: Dict[str, str]) -> None:
     """
     Entry point for data validation step
 

@@ -7,12 +7,13 @@ import os
 import time
 import shutil
 import tarfile
+
 import numpy as np
 import tensorflow as tf
 from sagemaker.tensorflow import TensorFlowModel
 
 
-def tf_model_to_tar(tf_model, run_id: int, ):
+def tf_model_to_tar(tf_model: tf.keras.Sequential, run_id: str) -> str:
     """
     Saves tensorflow model as compressed file
 
@@ -21,8 +22,8 @@ def tf_model_to_tar(tf_model, run_id: int, ):
     :return:
     """
 
-    model_name = "intent-model-{}/1".format(run_id)
-    local_tar_name = 'model-{}.tar.gz'.format(run_id)
+    model_name = f"intent-model-{run_id}/1"
+    local_tar_name = f"model-{run_id}.tar.gz"
 
     # save model locally
     tf_model.save(filepath=model_name)
@@ -35,7 +36,7 @@ def tf_model_to_tar(tf_model, run_id: int, ):
     return local_tar_name
 
 
-def deploy_model(model_s3_path: str):
+def deploy_model(model_s3_path: str, image_uri: str, role: str, sagemaker_instance: str) -> str:
     """
     Entry point for deploy step
 
@@ -52,13 +53,13 @@ def deploy_model(model_s3_path: str):
     # create sagemaker tf model
     model = TensorFlowModel(
         model_data=model_s3_path,
-        image_uri=os.getenv('DOCKER_IMAGE'),
-        role=os.getenv('IAM_SAGEMAKER_ROLE'))
+        image_uri=image_uri,
+        role=role)
 
     # deploy sagemaker model
     predictor = model.deploy(
         initial_instance_count=1,
-        instance_type=os.getenv('SAGEMAKER_INSTANCE'),
+        instance_type=sagemaker_instance,
         endpoint_name=endpoint_name)
 
     # prepare a test input and check response

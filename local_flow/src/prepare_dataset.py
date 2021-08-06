@@ -3,11 +3,17 @@
 Data preparation for model training
 
 """
-import csv
+from typing import Optional, List, Tuple, TypedDict
+
 import pandas as pd
 
 
-def prepare_dataset(training_file: str, K: int = None):
+class DatasetType(TypedDict):
+    X: List[List[int]]
+    y: List[int]
+
+
+def prepare_dataset(training_file: str, K: Optional[int] = None) -> DatasetType:
     """
     Entry point for data preparation step
 
@@ -21,7 +27,7 @@ def prepare_dataset(training_file: str, K: int = None):
     return {'X': x, 'y': y}
 
 
-def read_sessions_from_training_file(training_file: str, K: int = None):
+def read_sessions_from_training_file(training_file: str, K: Optional[int] = None) -> List[List[str]]:
     """
     Read data and extract sessions (list of events)
 
@@ -29,9 +35,9 @@ def read_sessions_from_training_file(training_file: str, K: int = None):
     :param K: row limit
     :return: list of sessions
     """
-    user_sessions = []
-    current_session = []
-    current_session_id = None
+    user_sessions: List[List[str]] = []
+    current_session: List[str] = []
+    current_session_id: Optional[str] = None
 
     reader = pd.read_parquet(training_file)
     for idx, row in reader.iterrows():
@@ -39,7 +45,7 @@ def read_sessions_from_training_file(training_file: str, K: int = None):
         if K and idx >= K:
             break
         # row will contain: session_id_hash, product_action, product_sku_hash
-        _session_id_hash = row['session_id_hash']
+        _session_id_hash = str(row['session_id_hash'])
         # when a new session begins, store the old one and start again
         if current_session_id and current_session and _session_id_hash != current_session_id:
             user_sessions.append(current_session)
@@ -49,7 +55,7 @@ def read_sessions_from_training_file(training_file: str, K: int = None):
         if (row['product_action'] == '' or row['product_action'] is None) and row['event_type'] == 'pageview':
             current_session.append('view')
         elif row['product_action'] != '' and row['product_action'] is not None:
-            current_session.append(row['product_action'])
+            current_session.append(str(row['product_action']))
         # update the current session id
         current_session_id = _session_id_hash
 
@@ -61,7 +67,7 @@ def read_sessions_from_training_file(training_file: str, K: int = None):
     return user_sessions
 
 
-def session_indexed(s: list):
+def session_indexed(s: List[str]) -> List[int]:
     """
     Converts a session (of actions) to indices and adds start/end tokens
 
@@ -74,7 +80,7 @@ def session_indexed(s: list):
     return [action_to_idx['start']] + [action_to_idx[e] for e in s] + [action_to_idx['end']]
 
 
-def prepare_training_data(sessions: list):
+def prepare_training_data(sessions: List[List[str]]) -> Tuple[List[List[int]], List[int]]:
     """
     Convert extracted session into training data
 
@@ -82,8 +88,8 @@ def prepare_training_data(sessions: list):
     :return: training data
     """
 
-    purchase_sessions = []
-    abandon_sessions = []
+    purchase_sessions: List[List[str]] = []
+    abandon_sessions: List[List[str]] = []
     for s in sessions:
         # check that purchase action occurs after add action
         if 'purchase' in s and 'add' in s and s.index('purchase') > s.index('add'):
@@ -103,14 +109,14 @@ def prepare_training_data(sessions: list):
             abandon_sessions.append(s)
 
     # convert sessions to index
-    purchase_sessions = [session_indexed(s) for s in purchase_sessions]
-    abandon_sessions = [session_indexed(s) for s in abandon_sessions]
+    purchase_sessions_idx = [session_indexed(s) for s in purchase_sessions]
+    abandon_sessions_idx = [session_indexed(s) for s in abandon_sessions]
 
     # combine session with purchase and abandon
-    x = purchase_sessions + abandon_sessions
+    x = purchase_sessions_idx + abandon_sessions_idx
 
     # give label=1 for purchase, label=0 for abandon
-    y = [1] * len(purchase_sessions) + [0] * len(abandon_sessions)
+    y = [1] * len(purchase_sessions_idx) + [0] * len(abandon_sessions_idx)
     assert len(x) == len(y)
 
     return x, y

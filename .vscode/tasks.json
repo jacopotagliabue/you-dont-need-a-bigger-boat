@@ -1,0 +1,43 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Local: make deploy",
+      "detail": "Deploy the lambda function",
+      "type": "shell",
+      "command": "make deploy",
+      "options": {
+        "cwd": "${workspaceFolder}/local_flow"
+      }
+    },
+    {
+      "label": "Local: make upload",
+      "detail": "Upload the parquet files",
+      "type": "shell",
+      "command": "make upload",
+      "options": {
+        "cwd": "${workspaceFolder}/local_flow"
+      }
+    },
+    {
+      "label": "Local: make run",
+      "detail": "Run Metaflow",
+      "type": "shell",
+      "command": "make run",
+      "options": {
+        "cwd": "${workspaceFolder}/local_flow",
+        "env": {
+          "MAX_WORKERS": "${input:metaflowMaxWorkers}"
+        }
+      }
+    }
+  ],
+  "inputs": [
+    {
+      "id": "metaflowMaxWorkers",
+      "type": "promptString",
+      "default": "8",
+      "description": "Max number of tasks runned in parallel"
+    }
+  ]
+}

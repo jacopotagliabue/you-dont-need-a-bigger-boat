@@ -113,12 +113,12 @@ class CartFlow(FlowSpec):
                    reinit=True)
 
         self.model, self.model_weights, x_model = train_lstm_model(x=self.dataset['X'],
-                                                          y=self.dataset['y'],
-                                                          epochs=self.config['EPOCHS'],
-                                                          patience=self.config['PATIENCE'],
-                                                          lstm_dim=self.config['LSTM_DIMS'],
-                                                          batch_size=self.config['BATCH_SIZE'],
-                                                          lr=self.config['LEARNING_RATE'])
+                                                                   y=self.dataset['y'],
+                                                                   epochs=self.config['EPOCHS'],
+                                                                   patience=self.config['PATIENCE'],
+                                                                   lstm_dim=self.config['LSTM_DIMS'],
+                                                                   batch_size=self.config['BATCH_SIZE'],
+                                                                   lr=self.config['LEARNING_RATE'])
 
         model_name = "metaflow-intent-prediction-remote-model-{}/1-{}".format(self.config['LEARNING_RATE'], time.time())
         local_tar_name = 'model-{}.tar.gz'.format(self.config['LEARNING_RATE'])

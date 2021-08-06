@@ -1,0 +1,40 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Local: Dataset Upload",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/local_flow/local_dataset_upload.py",
+      "cwd": "${workspaceFolder}/local_flow",
+      "envFile": "${workspaceFolder}/local_flow/.env",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Local: Metaflow Run",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/local_flow/src/cart_baseline_flow.py",
+      "cwd": "${workspaceFolder}/local_flow",
+      "args": [
+        "--no-pylint",
+        "run",
+        "--max-workers",
+        "${input:metaflowMaxWorkers}"
+      ],
+      "envFile": "${workspaceFolder}/local_flow/.env",
+      "console": "integratedTerminal"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "metaflowMaxWorkers",
+      "type": "promptString",
+      "default": "8",
+      "description": "Max number of tasks runned in parallel"
+    }
+  ]
+}

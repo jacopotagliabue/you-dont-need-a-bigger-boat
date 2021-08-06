@@ -6,11 +6,13 @@ except Exception as e:
     print(e)
     CUDF_AVAIL = False
 
+from typing import Dict, Optional
+
 import pandas as pd
 
 
-def read_from_parquet(path, limit=None):
-    df = pd.read_parquet(path, engine='pyarrow')
+def read_from_parquet(path: str, limit: Optional[int] = None) -> pd.DataFrame:
+    df: pd.DataFrame = pd.read_parquet(path, engine='pyarrow')
     print(df.shape)
     if CUDF_AVAIL:
         if limit:
@@ -19,13 +21,15 @@ def read_from_parquet(path, limit=None):
     return df
 
 
-def return_df(df):
+def return_df(df: pd.DataFrame) -> pd.DataFrame:
     if CUDF_AVAIL:
         df = df.to_pandas()
     return df
 
 
-def process_raw_data(search_train_path, browsing_train_path, sku_to_content_path):
+def process_raw_data(search_train_path: str,
+                     browsing_train_path: str,
+                     sku_to_content_path: str) -> Dict[str, pd.DataFrame]:
     """
     Entry point for data transformation with rapids/pandas
 
@@ -39,11 +43,11 @@ def process_raw_data(search_train_path, browsing_train_path, sku_to_content_path
     df_browsing_train = process_browsing_train(browsing_train_path)
     df_sku_to_content = process_sku_to_content(sku_to_content_path)
 
-    # reutrn dict of processed data with name, only browsing_train for now
+    # return dict of processed data with name, only browsing_train for now
     return {'browsing_train': df_browsing_train}
 
 
-def process_search_train(search_train_path):
+def process_search_train(search_train_path: str) -> pd.DataFrame:
     print('Processing {}'.format(search_train_path))
     df = read_from_parquet(search_train_path)
     # peek at raw data
@@ -53,7 +57,7 @@ def process_search_train(search_train_path):
     return return_df(df)
 
 
-def process_browsing_train(browsing_train_path):
+def process_browsing_train(browsing_train_path: str) -> pd.DataFrame:
     print('Processing {}'.format(browsing_train_path))
 
     # 30M seems to exceed some memory limit; take 1M rows for now
@@ -80,7 +84,7 @@ def process_browsing_train(browsing_train_path):
     return return_df(df)
 
 
-def process_sku_to_content(sku_to_content_path):
+def process_sku_to_content(sku_to_content_path: str) -> pd.DataFrame:
     print('Processing {}'.format(sku_to_content_path))
     df = read_from_parquet(sku_to_content_path)
 

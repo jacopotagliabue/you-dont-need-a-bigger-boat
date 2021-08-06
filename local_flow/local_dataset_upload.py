@@ -23,10 +23,10 @@ def upload_file_as_parquet(file_path: str,
                            target_s3_folder: str,
                            chunksize: Optional[int] = None,
                            partition_cols: Optional[List[str]] = None) -> None:
-    print('Begin reading file {}'.format(file_path))
+    print(f"Begin reading file {file_path}")
 
     s3_file_name = os.path.join(
-        target_s3_folder, get_filename(file_path) + '.parquet')
+        target_s3_folder, get_filename(file_path, 'parquet'))
     if not chunksize is None:
         df_content = next(pd.read_csv(file_path, chunksize=chunksize))
     else:
@@ -37,20 +37,28 @@ def upload_file_as_parquet(file_path: str,
                           engine='pyarrow',
                           partition_cols=partition_cols)
 
-    print('Parquet files for {} stored at : {}'.format(file_path, s3_file_name))
+    print(f"Parquet files for {file_path} stored at: {s3_file_name}")
 
 
 if __name__ == '__main__':
     PARQUET_S3_PATH = os.environ['PARQUET_S3_PATH']
     LOCAL_DATA_PATH = os.environ['LOCAL_DATA_PATH']
-    SKU_TO_CONTENT_PATH = os.path.join(LOCAL_DATA_PATH, 'sku_to_content.csv')
-    BROWSING_TRAIN_PATH = os.path.join(LOCAL_DATA_PATH, 'browsing_train.csv')
-    SEARCH_TRAIN_PATH = os.path.join(LOCAL_DATA_PATH, 'search_train.csv')
+    SKU_TO_CONTENT_PATH = os.path.join(LOCAL_DATA_PATH, os.getenv(
+        'SKU_TO_CONTENT_FILE_NAME', 'sku_to_content.csv'))
+    BROWSING_TRAIN_PATH = os.path.join(LOCAL_DATA_PATH, os.getenv(
+        'BROWSING_TRAIN_FILE_NAME', 'browsing_train.csv'))
+    SEARCH_TRAIN_PATH = os.path.join(LOCAL_DATA_PATH, os.getenv(
+        'SEARCH_TRAIN_FILE_NAME', 'search_train.csv'))
     TARGET_S3_PATH = os.path.join(DATATOOLS_S3ROOT, PARQUET_S3_PATH)
+
+    BATCH_SIZE = int(os.environ.get('BATCH_SIZE', 10000))
 
     # upload to S3 at some know path under the CartFlow directory
     # for now, upload some rows
     # there is no versioning whatsoever at this stage
-    upload_file_as_parquet(SKU_TO_CONTENT_PATH, TARGET_S3_PATH)
-    upload_file_as_parquet(BROWSING_TRAIN_PATH, TARGET_S3_PATH)
-    upload_file_as_parquet(SEARCH_TRAIN_PATH, TARGET_S3_PATH)
+    upload_file_as_parquet(SKU_TO_CONTENT_PATH, TARGET_S3_PATH,
+                           chunksize=BATCH_SIZE)
+    upload_file_as_parquet(BROWSING_TRAIN_PATH, TARGET_S3_PATH,
+                           chunksize=BATCH_SIZE)
+    upload_file_as_parquet(SEARCH_TRAIN_PATH, TARGET_S3_PATH,
+                           chunksize=BATCH_SIZE)
