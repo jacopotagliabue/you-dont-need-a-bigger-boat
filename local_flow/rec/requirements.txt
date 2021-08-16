@@ -1,0 +1,12 @@
+metaflow==2.2.13
+numpy==1.19.5
+tensorflow==2.5.0
+python-dotenv==0.13.0
+scikit-learn==0.24.1
+wandb==0.10.30
+pyarrow==3.0.0
+pandas==1.2.4
+s3fs==0.4.2
+great-expectations==0.13.19
+sagemaker==2.16.2
+gensim==4.0.1
