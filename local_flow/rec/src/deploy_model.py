@@ -36,7 +36,6 @@ def deploy_model(vectors_s3_path: str,
 
     # generate a signature for the endpoint using timestamp
     endpoint_name = 'rec-knn-{}-endpoint'.format(int(round(time.time() * 1000)))
-    
 
 
     # print out the name, so that we can use it when deploying our lambda
@@ -94,7 +93,7 @@ def deploy_model(vectors_s3_path: str,
     test_key = model.index_to_key[0]
     test_vector = model[test_key]
 
-    gensim_preds = np.array([model.key_to_index[_[0]] for _ in model.similar_by_key(test_key, topn=k+1)])[1:]
+    gensim_preds = np.array([model.key_to_index[_[0]] for _ in model.similar_by_key(test_key, topn=k-1)])
 
     result = predictor.predict(
         test_vector,
@@ -103,14 +102,12 @@ def deploy_model(vectors_s3_path: str,
     )['predictions'][0]
 
     print(result)
-    result = np.array(result['labels'])[::-1]
+    result = np.array(result['labels'])[::-1][1:]
 
     print('SM KNN : {}'.format(result))
     print('GS KNN : {}'.format(gensim_preds))
 
-
-    print(np.array_equal(gensim_preds, result))
-
-
+    # verify gensim and sm-knn are same on _some_ test input
+    assert np.array_equal(gensim_preds, result)
 
     return endpoint_name
