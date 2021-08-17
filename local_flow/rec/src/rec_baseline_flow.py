@@ -120,7 +120,6 @@ class RecFlow(FlowSpec):
 
     # @batch decorator used to run step on AWS Batch
     # wrap batch in a switch to allow easy local testing
-
     # @enable_decorator(batch(gpu=1, cpu=8, image=os.getenv('BASE_IMAGE')),
     #                   flag=os.getenv('EN_BATCH'))
     # @ environment decorator used to pass environment variables to Batch instance
@@ -128,15 +127,15 @@ class RecFlow(FlowSpec):
     #                    'WANDB_ENTITY': os.getenv('WANDB_ENTITY'),
     #                    'BASE_IMAGE': os.getenv('BASE_IMAGE'),
     #                    'EN_BATCH': os.getenv('EN_BATCH')})
-    # @ custom pip decorator for pip installation on Batch instance
-    @pip(libraries={'wandb': '0.10.30'})
+    # # @ custom pip decorator for pip installation on Batch instance
+    # @pip(libraries={'wandb': '0.10.30', 'gensim': '4.0.1'})
     @step
     def train_model(self):
         """
         Train a prod2vec model.
         """
         import wandb
-        from model import train_prod2vec_model
+        from model import train_prod2vec_model, train_prodb_model
 
         assert os.getenv('WANDB_API_KEY')
         assert os.getenv('WANDB_ENTITY')
@@ -149,7 +148,8 @@ class RecFlow(FlowSpec):
                    resume='allow',
                    reinit=True)
 
-        self.model = train_prod2vec_model(self.dataset)
+        # self.model = train_prod2vec_model(self.dataset)
+        self.model, self.token_mapping = train_prodb_model(self.dataset)
 
         self.next(self.deploy)
 
@@ -160,26 +160,31 @@ class RecFlow(FlowSpec):
         """
         import os
         from io import StringIO
-        from deploy_model import deploy_model
+        from deploy_model import deploy_model, deploy_tf_model
 
-        local_vectors_name = 'knn-vectors.csv'
+        with S3(run=self) as s3:
+            self.model_s3_path, self.endpoint_name = deploy_tf_model(self.model, s3,
+                                                                     current.run_id)
 
-        with StringIO() as buf:
-            # convert into SM KNN format
-            buf.writelines([','.join([str(idx)] + ["{:12.5e}".format(_) for _ in self.model[k]]) + '\n'
-                            for k, idx in self.model.key_to_index.items()])
-            buf.seek(0)
-            data = buf.read()
-            # save vectors to S3
-            with S3(run=self) as s3:
-                url = s3.put(local_vectors_name, data )
-                # print it out for debug purposes
-                print("Vectors saved at: {}".format(url))
-                # save this path for downstream reference!
-                self.vectors_s3_path = url
 
-        # fit and deploy KNN model to SageMaker KNN model
-        self.endpoint_name = deploy_model(self.vectors_s3_path, model=self.model)
+        # local_vectors_name = 'knn-vectors.csv'
+        #
+        # with StringIO() as buf:
+        #     # convert into SM KNN format
+        #     buf.writelines([','.join([str(idx)] + ["{:12.5e}".format(_) for _ in self.model[k]]) + '\n'
+        #                     for k, idx in self.model.key_to_index.items()])
+        #     buf.seek(0)
+        #     data = buf.read()
+        #     # save vectors to S3
+        #     with S3(run=self) as s3:
+        #         url = s3.put(local_vectors_name, data )
+        #         # print it out for debug purposes
+        #         print("Vectors saved at: {}".format(url))
+        #         # save this path for downstream reference!
+        #         self.vectors_s3_path = url
+        #
+        # # fit and deploy KNN model to SageMaker KNN model
+        # self.endpoint_name = deploy_model(self.vectors_s3_path, model=self.model)
 
         self.next(self.end)
 

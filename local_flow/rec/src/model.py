@@ -9,6 +9,54 @@ import numpy as np
 from random import choice
 from utils import return_json_file_content
 
+from dataclasses import dataclass
+from prodb.prodb import ProdB
+
+@dataclass
+class ProdBConfig():
+    MAX_LEN = 20
+    BATCH_SIZE = 32
+    LR = 0.001
+    EMBED_DIM = 128
+    NUM_HEAD = 8
+    MASKING_PROBABILITY = 0.25
+    DATA_RATIO = 10  # dummy variable, we used this to understand if data size had an effect
+    FF_DIM = 128
+    NUM_LAYERS = 1
+    EPOCHS = 1
+    VOCAB_SIZE = 0
+
+
+def train_prodb_model(dataset: dict):
+
+    # convert into prodb input format
+    train_sessions = [ ' '.join(_) for _ in dataset['train']]
+
+    # limit test sessions to last 20 interactions only
+    test_sessions = [' '.join(_[-20:]) for _ in dataset['valid']]
+
+    # initialize prodb
+    config = ProdBConfig()
+    config.VOCAB_SIZE = len( { _ for s in  dataset['train'] for _ in s  } )
+    prodb_model = ProdB(train_sessions, config)
+
+    # make predictions on test sessions
+    prodb_model.run_next_item_predictions(test_sessions[:1])
+
+
+
+    # return MLM weights and token mappings
+    return {
+                'model': prodb_model.bert_masked_model.to_json(),
+                'weights': prodb_model.bert_masked_model.get_weights(),
+                'custom_objects': { prodb_model.MaskedLanguageModel.__name__:prodb_model.MaskedLanguageModel }
+            },\
+           {
+                'token2id': prodb_model.token2id,
+                'id2token': prodb_model.id2token
+           }
+
+
 def train_prod2vec_model(sessions: dict,
                           min_c: int = 3,
                           size: int = 48,
