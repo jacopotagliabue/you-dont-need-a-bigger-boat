@@ -159,12 +159,18 @@ class RecFlow(FlowSpec):
         Deploy model on SageMaker
         """
         import os
+        import json
         from io import StringIO
         from deploy_model import deploy_model, deploy_tf_model
 
+        # deploy onto SM
         with S3(run=self) as s3:
             self.model_s3_path, self.endpoint_name = deploy_tf_model(self.model, s3,
                                                                      current.run_id)
+
+        # save mappings to serverless folder
+        with open('serverless/token_mapping.json', 'w') as f:
+            json.dump(self.token_mapping,f)
 
 
         # local_vectors_name = 'knn-vectors.csv'
