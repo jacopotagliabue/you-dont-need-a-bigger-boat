@@ -1,17 +1,26 @@
+
+import sys
+sys.path.append('package')
+
 import os
 import json
 import time
 import boto3
 from typing import Dict, Any, Union, IO
-
+import numpy as np
 
 # grab environment variables
-SAGEMAKER_ENDPOINT_NAME = os.getenv(
-    'SAGEMAKER_ENDPOINT_NAME', 'intent-1624889175387-endpoint')
+SAGEMAKER_ENDPOINT_NAME = os.getenv('SAGEMAKER_ENDPOINT_NAME')
 # print to AWS for debug!
 print(SAGEMAKER_ENDPOINT_NAME)
 # instantiate AWS client for invoking sagemaker endpoint
 runtime = boto3.client('sagemaker-runtime')
+
+TOKEN_MAPPING_PATH = os.getenv('TOKEN_MAPPING_PATH','token_mapping.json')
+
+# load token mapping
+with open(TOKEN_MAPPING_PATH) as f:
+    token_mapping = json.load(f)
 
 
 def wrap_response(status_code: int,
@@ -54,6 +63,39 @@ def get_response_from_sagemaker(model_input: str,
     return json.loads(response['Body'].read().decode())
 
 
+def preprocess_input(session):
+    # add mask
+    session = session + ['mask']
+    # select N most recent
+    session = session[-20:]
+    # convert into indices
+    session_indices = [ token_mapping['token2id'].get(_, token_mapping['token2id']['[UNK]']) for _ in session ]
+    # padding
+    session_indices = session_indices + [0]*(20-len(session))
+
+    # debug
+    print(session)
+    print(session_indices)
+
+
+    return session_indices
+
+
+def postprocess_response(prediction_input, response):
+    mask_token_id = token_mapping['token2id']['mask']
+
+    masked_index = np.where(prediction_input == mask_token_id)
+    masked_index = masked_index[1]
+    mask_prediction = response[0][masked_index]
+
+    top_indices = mask_prediction[0].argsort()[-10:][::-1]
+    values = mask_prediction[0][top_indices]
+
+    print(values)
+
+    return
+
+
 def predict(event: Dict[str, Any],
             context: Any) -> Dict[str, Any]:
     """
@@ -63,17 +105,6 @@ def predict(event: Dict[str, Any],
     :param context: standard AWS lambda context param - not use in this application
     :return:
     """
-    # static "feature store"
-    action_map = {
-        'start': [1, 0, 0, 0, 0, 0, 0],
-        'end': [0, 1, 0, 0, 0, 0, 0],
-        'add': [0, 0, 1, 0, 0, 0, 0],
-        'remove': [0, 0, 0, 1, 0, 0, 0],
-        'purchase': [0, 0, 0, 0, 1, 0, 0],
-        'detail': [0, 0, 0, 0, 0, 1, 0],
-        'view': [0, 0, 0, 0, 0, 0, 1],
-        'empty': [0, 0, 0, 0, 0, 0, 0]
-    }
 
     print("Received event: " + json.dumps(event))
     params = event.get('queryStringParameters', {})
@@ -84,40 +115,23 @@ def predict(event: Dict[str, Any],
 
     print(session)
 
-    session = ['start'] + session + ['end']
-
-    session_onehot = [
-        action_map[_] if _ in action_map else action_map['empty']
-        for _ in session
-    ]
+    prediction_input = preprocess_input(session)
     # input is array of array, even if we just ask for 1 prediction here
-    input_payload = {'instances': [session_onehot]}
+    input_payload = {'instances': [prediction_input]}
     result = get_response_from_sagemaker(model_input=json.dumps(input_payload),
                                          endpoint_name=SAGEMAKER_ENDPOINT_NAME,
                                          content_type='application/json')
     if result:
         # print for debugging in AWS Cloudwatch
-        print(result)
+        # print(result)
         # get the first item in the prediction array, as it is a 1-1 prediction
         response = result['predictions'][0][0]
+        response = postprocess_response(prediction_input, response)
+        #
+
 
     return wrap_response(200, {
         "prediction": response,
         "time": time.time() - start,
         "endpoint": SAGEMAKER_ENDPOINT_NAME
     })
-
-
-if __name__ == '__main__':
-    input_payload = {
-        'instances': [
-            [
-                [1, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 1, 0, 0]
-            ],
-        ]
-    }
-    result = get_response_from_sagemaker(model_input=json.dumps(input_payload),
-                                         endpoint_name=SAGEMAKER_ENDPOINT_NAME,
-                                         content_type='application/json')
-    print(result)

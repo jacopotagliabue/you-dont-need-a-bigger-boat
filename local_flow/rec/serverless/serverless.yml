@@ -9,9 +9,6 @@ provider:
 
 package:
   individually: true
-  patterns:
-    - "!*/**"
-    - "!*"
 
 functions:
   prediction_api:
@@ -25,6 +22,8 @@ functions:
     package:
       patterns:
         - handler.py
+        - ${env:TOKEN_MAPPING_PATH, 'token_mapping.json'}
+        - package
     iamRoleStatements:
       - Effect: "Allow"
         Action:
