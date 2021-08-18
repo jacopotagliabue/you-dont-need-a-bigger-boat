@@ -1,13 +1,8 @@
-
-import sys
-sys.path.append('package')
-
 import os
 import json
 import time
 import boto3
 from typing import Dict, Any, Union, IO
-import numpy as np
 
 # grab environment variables
 SAGEMAKER_ENDPOINT_NAME = os.getenv('SAGEMAKER_ENDPOINT_NAME')
@@ -33,7 +28,6 @@ def wrap_response(status_code: int,
     :return:
     """
     return {
-        'cookies': [''],
         'isBase64Encoded': False,
         'statusCode': status_code,
         'headers': {
@@ -81,19 +75,22 @@ def preprocess_input(session):
     return session_indices
 
 
+def argsort(seq, reverse=False):
+    #http://stackoverflow.com/questions/3382352/equivalent-of-numpy-argsort-in-basic-python/3382369#3382369
+    #by unutbu
+    return sorted(range(len(seq)), key=seq.__getitem__, reverse=reverse)
+
+
 def postprocess_response(prediction_input, response):
     mask_token_id = token_mapping['token2id']['mask']
+    # masked_index = np.where(prediction_input == mask_token_id)
 
-    masked_index = np.where(prediction_input == mask_token_id)
-    masked_index = masked_index[1]
-    mask_prediction = response[0][masked_index]
+    masked_index = [ _ for _ in range(len(prediction_input)) if prediction_input[_]== mask_token_id][0]
+    mask_prediction = response[masked_index]
 
-    top_indices = mask_prediction[0].argsort()[-10:][::-1]
-    values = mask_prediction[0][top_indices]
+    top_indices = argsort(mask_prediction, reverse=True)
 
-    print(values)
-
-    return
+    return top_indices[:10]
 
 
 def predict(event: Dict[str, Any],
@@ -125,13 +122,13 @@ def predict(event: Dict[str, Any],
         # print for debugging in AWS Cloudwatch
         # print(result)
         # get the first item in the prediction array, as it is a 1-1 prediction
-        response = result['predictions'][0][0]
+        response = result['predictions'][0]
         response = postprocess_response(prediction_input, response)
-        #
-
+        response = [ token_mapping['id2token'][str(_)] for _ in response]
+        print(response)
 
     return wrap_response(200, {
-        "prediction": response,
+        "prediction":response,
         "time": time.time() - start,
         "endpoint": SAGEMAKER_ENDPOINT_NAME
     })
