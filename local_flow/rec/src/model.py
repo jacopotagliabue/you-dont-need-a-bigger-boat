@@ -57,6 +57,49 @@ def train_prodb_model(dataset: dict):
            }
 
 
+def keras_knn_model(vector_dims:int,
+                      vocab_size:int,
+                      wv_model,
+                      id2token:dict):
+
+    import tensorflow as tf
+    from tensorflow.keras import layers, Model
+    from tensorflow.keras.backend import batch_dot
+
+    embedding_matrix = np.array([wv_model.get_vector(id2token[idx],norm=True) for idx in range(vocab_size)])
+
+    print('Embedding Matrix Shape : {}'.format(embedding_matrix.shape))
+
+    # initialize embedding layer with pretrained vectors
+    word_embeddings = layers.Embedding(input_dim=vocab_size,
+                                       output_dim=vector_dims,
+                                       weights=[embedding_matrix],
+                                       input_length=1,
+                                       trainable=False,
+                                       name="word_embedding")
+
+    # input is index of product/sku
+    inputs = layers.Input((1,), dtype=tf.int64)
+    # get query vector and  repeat
+    query_vector = word_embeddings(inputs)
+    # query_vector = layers.Reshape((vector_dims,))(query_vector)
+    # get all vectors
+    all_vectors = word_embeddings(np.array([[id for id in range(vocab_size)]]))
+    # compute cosine distance/dot product
+    cosine_distance = batch_dot(query_vector, all_vectors, axes=2)
+    output = layers.Reshape((vocab_size,))(cosine_distance)
+    # build functional model
+    model = Model(inputs=inputs,
+                  outputs=output,
+                  name='cosine-distance-model')
+
+    model.compile()
+    # debug
+    model.summary()
+    return model
+
+
+
 def train_prod2vec_model(sessions: dict,
                           min_c: int = 3,
                           size: int = 48,
@@ -75,19 +118,38 @@ def train_prod2vec_model(sessions: dict,
     :param ns_exponent: ns_exponent parameter for gensim word2vec
     :return: trained product embedding model
     """
-    model =  gensim.models.Word2Vec(sentences=sessions['train'],
-                                    min_count=min_c,
-                                    vector_size=size,
-                                    window=window,
-                                    epochs=iterations,
-                                    ns_exponent=ns_exponent)
+    model = gensim.models.Word2Vec(sentences=sessions['train'],
+                                   min_count=min_c,
+                                   vector_size=size,
+                                   window=window,
+                                   epochs=iterations,
+                                   ns_exponent=ns_exponent)
 
     print("# products in the space: {}".format(len(model.wv.index_to_key)))
 
-    make_predictions(model.wv, sessions['valid'])
+    token2id = model.wv.key_to_index
+    id2token = {id:token for token,id in token2id.items()}
 
+    knn_model = keras_knn_model(vector_dims=size,
+                                  vocab_size=len(token2id),
+                                  wv_model=model.wv,
+                                  id2token=id2token)
 
-    return model.wv
+    # debug
+    # response = knn_model(np.array([[0]]))[0]
+    # response = np.argsort(response)[::-1][:10]
+    # print(response)
+    # print([ token2id[_[0]] for _ in model.wv.similar_by_word(id2token[0])])
+
+    return {
+               'model': knn_model.to_json(),
+               'weights': knn_model.get_weights(),
+               'custom_objects': {}
+           }, \
+           {
+               'token2id': token2id,
+               'id2token': id2token
+           }
 
 
 def make_predictions(prod2vec_model, sessions):

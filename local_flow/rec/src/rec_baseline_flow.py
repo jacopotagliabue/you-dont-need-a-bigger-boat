@@ -148,8 +148,8 @@ class RecFlow(FlowSpec):
                    resume='allow',
                    reinit=True)
 
-        # self.model = train_prod2vec_model(self.dataset)
-        self.model, self.token_mapping = train_prodb_model(self.dataset)
+        self.model, self.token_mapping = train_prod2vec_model(self.dataset)
+        # self.model, self.token_mapping = train_prodb_model(self.dataset)
 
         self.next(self.deploy)
 
