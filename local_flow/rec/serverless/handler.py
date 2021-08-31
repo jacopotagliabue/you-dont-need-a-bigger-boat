@@ -3,6 +3,7 @@ import json
 import time
 import boto3
 from typing import Dict, Any, Union, IO
+import random
 
 # grab environment variables
 SAGEMAKER_ENDPOINT_NAME = os.getenv('SAGEMAKER_ENDPOINT_NAME')
@@ -17,6 +18,9 @@ TOKEN_MAPPING_PATH = os.getenv('TOKEN_MAPPING_PATH','token_mapping.json')
 with open(TOKEN_MAPPING_PATH) as f:
     token_mapping = json.load(f)
 
+token2id = token_mapping['token2id']
+id2token = token_mapping['id2token']
+VOCAB_SIZE = len(token2id)
 
 def wrap_response(status_code: int,
                   body: Dict[Any, Any]) -> Dict[str, Any]:
@@ -50,6 +54,7 @@ def get_response_from_sagemaker(model_input: str,
     :return:
     """
     # get raw response from sagemaker
+    print(model_input)
     response = runtime.invoke_endpoint(EndpointName=endpoint_name,
                                        ContentType=content_type,
                                        Body=model_input)
@@ -83,7 +88,6 @@ def argsort(seq, reverse=False):
 
 def postprocess_response(prediction_input, response):
     mask_token_id = token_mapping['token2id']['mask']
-    # masked_index = np.where(prediction_input == mask_token_id)
 
     masked_index = [ _ for _ in range(len(prediction_input)) if prediction_input[_]== mask_token_id][0]
     mask_prediction = response[masked_index]
@@ -112,9 +116,14 @@ def predict(event: Dict[str, Any],
 
     print(session)
 
-    prediction_input = preprocess_input(session)
-    # input is array of array, even if we just ask for 1 prediction here
-    input_payload = {'instances': [prediction_input]}
+    # get UNK index if exist else random select from vocab
+    UNK = token2id.get('[UNK]', random.randint(0,VOCAB_SIZE))
+    # get mask index if exist else None
+    MASK = token2id.get('mask', None)
+    # convert session sku to ids
+    session_indices = [token2id.get(_, UNK) for _ in session]
+    input_payload = {'instances': session_indices, 'mask': MASK}
+
     result = get_response_from_sagemaker(model_input=json.dumps(input_payload),
                                          endpoint_name=SAGEMAKER_ENDPOINT_NAME,
                                          content_type='application/json')
@@ -123,8 +132,8 @@ def predict(event: Dict[str, Any],
         # print(result)
         # get the first item in the prediction array, as it is a 1-1 prediction
         response = result['predictions'][0]
-        response = postprocess_response(prediction_input, response)
-        response = [ token_mapping['id2token'][str(_)] for _ in response]
+        # response = postprocess_response(prediction_input, response)
+        # response = [ token_mapping['id2token'][str(_)] for _ in response]
         print(response)
 
     return wrap_response(200, {

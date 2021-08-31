@@ -53,35 +53,34 @@ def train_prodb_model(dataset: dict):
 
 
 def keras_knn_model(vector_dims:int,
-                      vocab_size:int,
-                      wv_model,
-                      id2token:dict):
+                    vocab_size:int,
+                    wv_model,
+                    id2token:dict):
 
     import tensorflow as tf
     from tensorflow.keras import layers, Model
     from tensorflow.keras.backend import batch_dot
 
+    # get normalized vectors from trained gensim model
     embedding_matrix = np.array([wv_model.get_vector(id2token[idx],norm=True) for idx in range(vocab_size)])
-
     print('Embedding Matrix Shape : {}'.format(embedding_matrix.shape))
 
     # initialize embedding layer with pretrained vectors
     word_embeddings = layers.Embedding(input_dim=vocab_size,
                                        output_dim=vector_dims,
                                        weights=[embedding_matrix],
-                                       input_length=1,
                                        trainable=False,
                                        name="word_embedding")
 
     # input is index of product/sku
     inputs = layers.Input((1,), dtype=tf.int64)
-    # get query vector and  repeat
+    # get query vector
     query_vector = word_embeddings(inputs)
-    # query_vector = layers.Reshape((vector_dims,))(query_vector)
     # get all vectors
     all_vectors = word_embeddings(np.array([[id for id in range(vocab_size)]]))
-    # compute cosine distance/dot product
+    # compute cosine distance/dot product using batch_dot (auto broadcasting)
     cosine_distance = batch_dot(query_vector, all_vectors, axes=2)
+    # remove extra dimension
     output = layers.Reshape((vocab_size,))(cosine_distance)
     # build functional model
     model = Model(inputs=inputs,

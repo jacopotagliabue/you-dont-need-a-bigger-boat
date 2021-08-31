@@ -9,19 +9,13 @@ import shutil
 import tarfile
 import numpy as np
 
+from tensorflow.keras import Model
+from tensorflow.keras.models import model_from_json
 
-import tensorflow as tf
-
-import sagemaker
 from sagemaker.tensorflow import TensorFlowModel
-from sagemaker.serializers import CSVSerializer
-from sagemaker.deserializers import JSONDeserializer
 
-from urllib.parse import urlparse
 
-from gensim.models import KeyedVectors
-
-def tf_model_to_tar(tf_model, run_id: int, ):
+def tf_model_to_tar(tf_model: Model, run_id: int, ):
     """
     Saves tensorflow model as compressed file
 
@@ -44,10 +38,9 @@ def tf_model_to_tar(tf_model, run_id: int, ):
     return local_tar_name
 
 
-def deploy_tf_model(model, s3, run_id, ):
+def deploy_tf_model(model, s3, run_id):
 
-    import os
-    from tensorflow.keras.models import model_from_json
+
 
     # load model from json and weights
     tf_model = model_from_json(model['model'],custom_objects=model.get('custom_objects', None))
@@ -78,7 +71,8 @@ def deploy_tf_model(model, s3, run_id, ):
     model = TensorFlowModel(
         model_data=model_s3_path,
         image_uri=os.getenv('DOCKER_IMAGE'),
-        role=os.getenv('IAM_SAGEMAKER_ROLE'))
+        role=os.getenv('IAM_SAGEMAKER_ROLE'),
+        entry_point='src/knn_sm_inference/inference.py')
 
     # deploy sagemaker model
     predictor = model.deploy(

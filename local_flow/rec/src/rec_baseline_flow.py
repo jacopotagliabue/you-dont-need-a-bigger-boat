@@ -158,39 +158,18 @@ class RecFlow(FlowSpec):
         """
         Deploy model on SageMaker
         """
-        import os
         import json
-        from io import StringIO
-        from deploy_model import deploy_model, deploy_tf_model
+        from deploy_model import deploy_tf_model
 
         # deploy onto SM
         with S3(run=self) as s3:
-            self.model_s3_path, self.endpoint_name = deploy_tf_model(self.model, s3,
+            self.model_s3_path, self.endpoint_name = deploy_tf_model(self.model,
+                                                                     s3,
                                                                      current.run_id)
 
         # save mappings to serverless folder
         with open('serverless/token_mapping.json', 'w') as f:
             json.dump(self.token_mapping,f)
-
-
-        # local_vectors_name = 'knn-vectors.csv'
-        #
-        # with StringIO() as buf:
-        #     # convert into SM KNN format
-        #     buf.writelines([','.join([str(idx)] + ["{:12.5e}".format(_) for _ in self.model[k]]) + '\n'
-        #                     for k, idx in self.model.key_to_index.items()])
-        #     buf.seek(0)
-        #     data = buf.read()
-        #     # save vectors to S3
-        #     with S3(run=self) as s3:
-        #         url = s3.put(local_vectors_name, data )
-        #         # print it out for debug purposes
-        #         print("Vectors saved at: {}".format(url))
-        #         # save this path for downstream reference!
-        #         self.vectors_s3_path = url
-        #
-        # # fit and deploy KNN model to SageMaker KNN model
-        # self.endpoint_name = deploy_model(self.vectors_s3_path, model=self.model)
 
         self.next(self.end)
 
