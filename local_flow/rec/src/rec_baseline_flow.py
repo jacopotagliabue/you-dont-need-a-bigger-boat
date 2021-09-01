@@ -132,13 +132,14 @@ class RecFlow(FlowSpec):
     @step
     def train_model(self):
         """
-        Train a prod2vec model.
+        Train a prod2vec or ProdB model.
         """
         import wandb
         from model import train_prod2vec_model, train_prodb_model
 
         assert os.getenv('WANDB_API_KEY')
         assert os.getenv('WANDB_ENTITY')
+        assert os.getenv('MODEL_CHOICE') in ['KNN','PRODB']
 
         # initialize wandb for tracking
         wandb.init(entity=os.getenv('WANDB_ENTITY'),
@@ -148,8 +149,11 @@ class RecFlow(FlowSpec):
                    resume='allow',
                    reinit=True)
 
-        self.model, self.token_mapping = train_prod2vec_model(self.dataset)
-        # self.model, self.token_mapping = train_prodb_model(self.dataset)
+        # choose either k-NN model or BERT model
+        if os.getenv('MODEL_CHOICE') == 'KNN':
+            self.model, self.token_mapping = train_prod2vec_model(self.dataset)
+        else:
+            self.model, self.token_mapping = train_prodb_model(self.dataset)
 
         self.next(self.deploy)
 
@@ -165,10 +169,13 @@ class RecFlow(FlowSpec):
         with S3(run=self) as s3:
             self.model_s3_path, self.endpoint_name = deploy_tf_model(self.model,
                                                                      s3,
-                                                                     current.run_id)
+                                                                     current.run_id,
+                                                                     self.token_mapping)
 
+
+        self.token_mapping_fname = 'serverless/token-mapping-{}.json'.format(self.endpoint_name)
         # save mappings to serverless folder
-        with open('serverless/token_mapping.json', 'w') as f:
+        with open(self.token_mapping_fname, 'w') as f:
             json.dump(self.token_mapping,f)
 
         self.next(self.end)
