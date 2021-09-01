@@ -38,9 +38,7 @@ def tf_model_to_tar(tf_model: Model, run_id: int, ):
     return local_tar_name
 
 
-def deploy_tf_model(model, s3, run_id):
-
-
+def deploy_tf_model(model, s3, run_id, token_mapping):
 
     # load model from json and weights
     tf_model = model_from_json(model['model'],custom_objects=model.get('custom_objects', None))
@@ -81,14 +79,12 @@ def deploy_tf_model(model, s3, run_id):
         endpoint_name=endpoint_name)
 
     # prepare a test input and check response
-    test_inp = {'instances': np.array([[1,2,3,4,5]+[0]*15])}
+    test_inp = {'instances': [10,124,12,45,43]+[0]*15,
+                'mask' : token_mapping['token2id'].get('mask', None)}
 
     result = predictor.predict(test_inp)
-
-    # print(test_inp, result)
-    # assert result['predictions'][0][0] > 0
-
     assert result['predictions']
+    print(result['predictions'])
 
     return model_s3_path, endpoint_name
 

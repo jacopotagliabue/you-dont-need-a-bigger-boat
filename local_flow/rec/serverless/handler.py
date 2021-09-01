@@ -22,6 +22,11 @@ token2id = token_mapping['token2id']
 id2token = token_mapping['id2token']
 VOCAB_SIZE = len(token2id)
 
+def argsort(seq):
+    #http://stackoverflow.com/questions/3382352/equivalent-of-numpy-argsort-in-basic-python/3382369#3382369
+    #by unutbu
+    return sorted(range(len(seq)), key=seq.__getitem__)
+
 def wrap_response(status_code: int,
                   body: Dict[Any, Any]) -> Dict[str, Any]:
     """
@@ -62,41 +67,6 @@ def get_response_from_sagemaker(model_input: str,
     return json.loads(response['Body'].read().decode())
 
 
-def preprocess_input(session):
-    # add mask
-    session = session + ['mask']
-    # select N most recent
-    session = session[-20:]
-    # convert into indices
-    session_indices = [ token_mapping['token2id'].get(_, token_mapping['token2id']['[UNK]']) for _ in session ]
-    # padding
-    session_indices = session_indices + [0]*(20-len(session))
-
-    # debug
-    print(session)
-    print(session_indices)
-
-
-    return session_indices
-
-
-def argsort(seq, reverse=False):
-    #http://stackoverflow.com/questions/3382352/equivalent-of-numpy-argsort-in-basic-python/3382369#3382369
-    #by unutbu
-    return sorted(range(len(seq)), key=seq.__getitem__, reverse=reverse)
-
-
-def postprocess_response(prediction_input, response):
-    mask_token_id = token_mapping['token2id']['mask']
-
-    masked_index = [ _ for _ in range(len(prediction_input)) if prediction_input[_]== mask_token_id][0]
-    mask_prediction = response[masked_index]
-
-    top_indices = argsort(mask_prediction, reverse=True)
-
-    return top_indices[:10]
-
-
 def predict(event: Dict[str, Any],
             context: Any) -> Dict[str, Any]:
     """
@@ -118,26 +88,26 @@ def predict(event: Dict[str, Any],
 
     # get UNK index if exist else random select from vocab
     UNK = token2id.get('[UNK]', random.randint(0,VOCAB_SIZE))
-    # get mask index if exist else None
+    # get mask index if exist else None, used by ProdB
     MASK = token2id.get('mask', None)
     # convert session sku to ids
     session_indices = [token2id.get(_, UNK) for _ in session]
     input_payload = {'instances': session_indices, 'mask': MASK}
 
+    print(input_payload)
     result = get_response_from_sagemaker(model_input=json.dumps(input_payload),
                                          endpoint_name=SAGEMAKER_ENDPOINT_NAME,
                                          content_type='application/json')
+    print(len(result))
+
     if result:
-        # print for debugging in AWS Cloudwatch
-        # print(result)
-        # get the first item in the prediction array, as it is a 1-1 prediction
         response = result['predictions'][0]
-        # response = postprocess_response(prediction_input, response)
-        # response = [ token_mapping['id2token'][str(_)] for _ in response]
-        print(response)
+        sorted_indices = argsort(response)
+        sku_predictions = [token_mapping['id2token'][str(_)] for _ in sorted_indices]
+        print(sku_predictions[:10])
 
     return wrap_response(200, {
-        "prediction":response,
+        "prediction":sku_predictions[:10],
         "time": time.time() - start,
         "endpoint": SAGEMAKER_ENDPOINT_NAME
     })
