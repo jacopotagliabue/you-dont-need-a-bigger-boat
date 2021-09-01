@@ -35,8 +35,7 @@ class RecFlow(FlowSpec):
         self.next(self.process_raw_data)
 
     # These compute requirements are compatible with p3.2xlarge (https://www.amazonaws.cn/en/ec2/instance-types/)
-    @enable_decorator(batch(gpu=1, cpu=8, memory=60000, image=os.getenv('RAPIDS_IMAGE')),
-                      flag=os.getenv('EN_BATCH'))
+    @enable_decorator(batch(gpu=1, cpu=8, memory=60000, image=os.getenv('RAPIDS_IMAGE')), flag=os.getenv('EN_BATCH'))
     @environment(vars={'RAPIDS_IMAGE': os.getenv('RAPIDS_IMAGE'),
                        'PARQUET_S3_PATH': os.getenv('PARQUET_S3_PATH'),
                        'SEARCH_TRAIN_PATH': os.getenv('SEARCH_TRAIN_PATH'),
@@ -132,8 +131,9 @@ class RecFlow(FlowSpec):
     @step
     def train_model(self):
         """
-        Train a prod2vec or ProdB model.
+        Train a Prod2Vec or ProdB model.
         """
+        import os
         import wandb
         from model import train_prod2vec_model, train_prodb_model
 
@@ -162,18 +162,25 @@ class RecFlow(FlowSpec):
         """
         Deploy model on SageMaker
         """
+        import os
         import json
         from deploy_model import deploy_tf_model
 
+        inference_code_path = "src/{}_sm_inference/inference.py".format(os.getenv('MODEL_CHOICE').lower())
+
         # deploy onto SM
         with S3(run=self) as s3:
-            self.model_s3_path, self.endpoint_name = deploy_tf_model(self.model,
-                                                                     s3,
-                                                                     current.run_id,
-                                                                     self.token_mapping)
-
+            self.model_s3_path, \
+            self.endpoint_name = deploy_tf_model(model_json=self.model['model'],
+                                                 model_weights=self.model['weights'],
+                                                 custom_objects=self.model['custom_objects'],
+                                                 sagemaker_entry_point_path=inference_code_path,
+                                                 token_mapping=self.token_mapping,
+                                                 s3_obj=s3,
+                                                 run_id=current.run_id)
 
         self.token_mapping_fname = 'serverless/token-mapping-{}.json'.format(self.endpoint_name)
+
         # save mappings to serverless folder
         with open(self.token_mapping_fname, 'w') as f:
             json.dump(self.token_mapping,f)

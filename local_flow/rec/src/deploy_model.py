@@ -14,6 +14,7 @@ from tensorflow.keras.models import model_from_json
 
 from sagemaker.tensorflow import TensorFlowModel
 
+from metaflow import S3
 
 def tf_model_to_tar(tf_model: Model, run_id: int, ):
     """
@@ -38,11 +39,17 @@ def tf_model_to_tar(tf_model: Model, run_id: int, ):
     return local_tar_name
 
 
-def deploy_tf_model(model, s3, run_id, token_mapping):
+def deploy_tf_model(model_json: str,
+                    model_weights: list,
+                    custom_objects: dict,
+                    sagemaker_entry_point_path: str,
+                    token_mapping: dict,
+                    s3_obj: S3,
+                    run_id: int):
 
     # load model from json and weights
-    tf_model = model_from_json(model['model'],custom_objects=model.get('custom_objects', None))
-    tf_model.set_weights(model['weights'])
+    tf_model = model_from_json(model_json, custom_objects=custom_objects)
+    tf_model.set_weights(model_weights)
 
     # save model as .tar.gz onto S3 for SageMaker
     local_tar_name = tf_model_to_tar(tf_model, run_id)
@@ -50,7 +57,7 @@ def deploy_tf_model(model, s3, run_id, token_mapping):
     # save model to S3
     with open(local_tar_name, "rb") as in_file:
         data = in_file.read()
-        url = s3.put(local_tar_name, data)
+        url = s3_obj.put(local_tar_name, data)
         # print it out for debug purposes
         print("Model saved at: {}".format(url))
         # save this path for downstream reference!
@@ -70,7 +77,7 @@ def deploy_tf_model(model, s3, run_id, token_mapping):
         model_data=model_s3_path,
         image_uri=os.getenv('DOCKER_IMAGE'),
         role=os.getenv('IAM_SAGEMAKER_ROLE'),
-        entry_point='src/knn_sm_inference/inference.py')
+        entry_point=sagemaker_entry_point_path)
 
     # deploy sagemaker model
     predictor = model.deploy(
