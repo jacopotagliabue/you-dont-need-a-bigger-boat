@@ -12,6 +12,9 @@ from utils import return_json_file_content
 from dataclasses import dataclass
 from prodb.prodb import ProdB
 
+import tensorflow as tf
+from tensorflow.keras import layers, Model
+
 @dataclass
 class ProdBConfig():
     MAX_LEN = 20
@@ -27,6 +30,19 @@ class ProdBConfig():
     VOCAB_SIZE = 0
 
 
+def prodb_inference_model(prodb_model):
+
+    inputs = layers.Input((prodb_model.config.MAX_LEN,), dtype=tf.int64)
+    prediction = prodb_model.bert_masked_model(inputs)
+    mask_idx = tf.where(tf.not_equal(inputs[0],0))[-1,0]
+    output = prediction[0,mask_idx]
+    inference_model = Model(inputs=inputs, outputs=output)
+    inference_model.compile()
+    inference_model.summary()
+    return inference_model
+
+
+
 def train_prodb_model(dataset: dict):
 
     # convert into prodb input format
@@ -40,11 +56,19 @@ def train_prodb_model(dataset: dict):
     # make predictions on test sessions
     prodb_model.run_next_item_predictions(test_sessions[:1])
 
+    model = prodb_inference_model(prodb_model)
+
+    # debug
+    print(model(np.array([ [10,124,12,45,43]+[0]*15 ])))
+
     # return MLM weights and token mappings
     return {
-                'model': prodb_model.bert_masked_model.to_json(),
-                'weights': prodb_model.bert_masked_model.get_weights(),
-                'custom_objects': { prodb_model.MaskedLanguageModel.__name__: prodb_model.MaskedLanguageModel }
+               'model': model.to_json(),
+               'weights': model.get_weights(),
+               'custom_objects': { prodb_model.MaskedLanguageModel.__name__: prodb_model.MaskedLanguageModel }
+                # 'model': prodb_model.bert_masked_model.to_json(),
+                # 'weights': prodb_model.bert_masked_model.get_weights(),
+                # 'custom_objects': { prodb_model.MaskedLanguageModel.__name__: prodb_model.MaskedLanguageModel }
             },\
            {
                 'token2id': prodb_model.token2id,
