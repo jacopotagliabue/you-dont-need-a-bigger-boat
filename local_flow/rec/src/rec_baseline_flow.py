@@ -18,7 +18,7 @@ from custom_decorators import pip, enable_decorator
 
 class RecFlow(FlowSpec):
     """
-    CartFlow is a DAG that loads and transforms session data, trains a cart-abandonment/purchase-intent
+    RecFlow is a DAG that loads and transforms session data, trains a cart-abandonment/purchase-intent
     binary prediction model, and deploys the Keras model onto SageMaker.
     """
 
@@ -119,14 +119,15 @@ class RecFlow(FlowSpec):
 
     # @batch decorator used to run step on AWS Batch
     # wrap batch in a switch to allow easy local testing
-    # @enable_decorator(batch(gpu=1, cpu=8, image=os.getenv('BASE_IMAGE')),
-    #                   flag=os.getenv('EN_BATCH'))
+    @enable_decorator(batch(gpu=1, cpu=8, image=os.getenv('BASE_IMAGE')),
+                      flag=os.getenv('EN_BATCH'))
     # @ environment decorator used to pass environment variables to Batch instance
-    # @environment(vars={'WANDB_API_KEY': os.getenv('WANDB_API_KEY'),
-    #                    'WANDB_ENTITY': os.getenv('WANDB_ENTITY'),
-    #                    'BASE_IMAGE': os.getenv('BASE_IMAGE'),
-    #                    'EN_BATCH': os.getenv('EN_BATCH')})
-    # # @ custom pip decorator for pip installation on Batch instance
+    @environment(vars={'WANDB_API_KEY': os.getenv('WANDB_API_KEY'),
+                       'WANDB_ENTITY': os.getenv('WANDB_ENTITY'),
+                       'BASE_IMAGE': os.getenv('BASE_IMAGE'),
+                       'EN_BATCH': os.getenv('EN_BATCH'),
+                       'MODEL_CHOICE': os.getenv('MODEL_CHOICE')})
+    # un-comment if image does not contain required packages
     # @pip(libraries={'wandb': '0.10.30', 'gensim': '4.0.1'})
     @step
     def train_model(self):

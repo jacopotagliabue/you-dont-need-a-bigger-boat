@@ -7,16 +7,17 @@ import wandb
 import gensim
 import numpy as np
 from random import choice
-from utils import return_json_file_content
 
 from dataclasses import dataclass
 from prodb.prodb import ProdB
 
 import tensorflow as tf
 from tensorflow.keras import layers, Model
+from tensorflow.keras.backend import batch_dot
+
 
 @dataclass
-class ProdBConfig():
+class ProdBConfig:
     MAX_LEN = 20
     BATCH_SIZE = 32
     LR = 0.001
@@ -25,8 +26,8 @@ class ProdBConfig():
     MASKING_PROBABILITY = 0.25
     DATA_RATIO = 10  # dummy variable, we used this to understand if data size had an effect
     FF_DIM = 128
-    NUM_LAYERS = 1
-    EPOCHS = 1
+    NUM_LAYERS = 4
+    EPOCHS = 5
     VOCAB_SIZE = 0
 
 
@@ -34,41 +35,38 @@ def prodb_inference_model(prodb_model):
 
     inputs = layers.Input((prodb_model.config.MAX_LEN,), dtype=tf.int64)
     prediction = prodb_model.bert_masked_model(inputs)
-    mask_idx = tf.where(tf.not_equal(inputs[0],0))[-1,0]
-    output = prediction[0,mask_idx]
+    mask_idx = tf.where(tf.not_equal(inputs[0], 0))[-1, 0]
+    output = prediction[0, mask_idx]
     inference_model = Model(inputs=inputs, outputs=output)
     inference_model.compile()
-    inference_model.summary()
+    # debug
+    # inference_model.summary()
     return inference_model
-
 
 
 def train_prodb_model(dataset: dict):
 
     # convert into prodb input format
-    train_sessions = [ ' '.join(_) for _ in dataset['train']]
+    train_sessions = [' '.join(_) for _ in dataset['train']]
     # limit test sessions to last 20 interactions only
     test_sessions = [' '.join(_[-20:]) for _ in dataset['valid']]
     # initialize prodb
     config = ProdBConfig()
-    config.VOCAB_SIZE = len( { _ for s in  dataset['train'] for _ in s  } )
+    config.VOCAB_SIZE = len({_ for s in dataset['train'] for _ in s})
     prodb_model = ProdB(train_sessions, config)
+    # call model.fit
+    prodb_model()
     # make predictions on test sessions
     prodb_model.run_next_item_predictions(test_sessions[:1])
-
+    # wrap MLM in an inference friendly model
     model = prodb_inference_model(prodb_model)
-
     # debug
-    print(model(np.array([ [10,124,12,45,43]+[0]*15 ])))
-
+    # print(model(np.array([ [10,124,12,45,43]+[0]*15 ])))
     # return MLM weights and token mappings
     return {
                'model': model.to_json(),
                'weights': model.get_weights(),
-               'custom_objects': { prodb_model.MaskedLanguageModel.__name__: prodb_model.MaskedLanguageModel }
-                # 'model': prodb_model.bert_masked_model.to_json(),
-                # 'weights': prodb_model.bert_masked_model.get_weights(),
-                # 'custom_objects': { prodb_model.MaskedLanguageModel.__name__: prodb_model.MaskedLanguageModel }
+               'custom_objects': {prodb_model.MaskedLanguageModel.__name__: prodb_model.MaskedLanguageModel}
             },\
            {
                 'token2id': prodb_model.token2id,
@@ -76,17 +74,12 @@ def train_prodb_model(dataset: dict):
            }
 
 
-def keras_knn_model(vector_dims:int,
-                    vocab_size:int,
-                    wv_model,
-                    id2token:dict):
-
-    import tensorflow as tf
-    from tensorflow.keras import layers, Model
-    from tensorflow.keras.backend import batch_dot
-
+def knn_inference_model(vector_dims: int,
+                        vocab_size: int,
+                        wv_model,
+                        id2token: dict):
     # get normalized vectors from trained gensim model
-    embedding_matrix = np.array([wv_model.get_vector(id2token[idx],norm=True) for idx in range(vocab_size)])
+    embedding_matrix = np.array([wv_model.get_vector(id2token[idx], norm=True) for idx in range(vocab_size)])
     print('Embedding Matrix Shape : {}'.format(embedding_matrix.shape))
 
     # initialize embedding layer with pretrained vectors
@@ -101,7 +94,7 @@ def keras_knn_model(vector_dims:int,
     # get query vector
     query_vector = word_embeddings(inputs)
     # get all vectors
-    all_vectors = word_embeddings(np.array([[id for id in range(vocab_size)]]))
+    all_vectors = word_embeddings(np.array([[idx for idx in range(vocab_size)]]))
     # compute cosine distance/dot product using batch_dot (auto broadcasting)
     cosine_distance = batch_dot(query_vector, all_vectors, axes=2)
     # remove extra dimension
@@ -113,17 +106,16 @@ def keras_knn_model(vector_dims:int,
     # compile model
     model.compile()
     # debug
-    model.summary()
+    # model.summary()
     return model
 
 
-
 def train_prod2vec_model(sessions: dict,
-                          min_c: int = 3,
-                          size: int = 48,
-                          window: int = 5,
-                          iterations: int = 15,
-                          ns_exponent: float = 0.75):
+                         min_c: int = 3,
+                         size: int = 48,
+                         window: int = 5,
+                         iterations: int = 15,
+                         ns_exponent: float = 0.75):
     """
     Train CBOW to get product embeddings. We start with sensible defaults from the literature - please
     check https://arxiv.org/abs/2007.14906 for practical tips on how to optimize prod2vec.
@@ -146,13 +138,12 @@ def train_prod2vec_model(sessions: dict,
     print("# products in the space: {}".format(len(model.wv.index_to_key)))
 
     token2id = model.wv.key_to_index
-    id2token = {id:token for token,id in token2id.items()}
+    id2token = {idx: token for token, idx in token2id.items()}
 
-    knn_model = keras_knn_model(vector_dims=size,
-                                  vocab_size=len(token2id),
-                                  wv_model=model.wv,
-                                  id2token=id2token)
-
+    knn_model = knn_inference_model(vector_dims=size,
+                                    vocab_size=len(token2id),
+                                    wv_model=model.wv,
+                                    id2token=id2token)
     # debug
     # response = knn_model(np.array([[0]]))[0]
     # response = np.argsort(response)[::-1][:10]
@@ -160,13 +151,13 @@ def train_prod2vec_model(sessions: dict,
     # print([ token2id[_[0]] for _ in model.wv.similar_by_word(id2token[0])])
 
     return {
-               'model': knn_model.to_json(),
-               'weights': knn_model.get_weights(),
-               'custom_objects': {}
+                'model': knn_model.to_json(),
+                'weights': knn_model.get_weights(),
+                'custom_objects': {}
            }, \
            {
-               'token2id': token2id,
-               'id2token': id2token
+                'token2id': token2id,
+                'id2token': id2token
            }
 
 
@@ -193,12 +184,10 @@ def make_predictions(prod2vec_model, sessions):
         if next_sku == target:
             hits+=1
 
-
     # print out some "coverage"
     print("Predictions made in {} out of {} total test cases".format(cnt_preds, len(test_queries)))
     # check hit rate as metric
     print("HR : {}".format(hits/len(test_queries)))
-
     wandb.log({"HR": hits / len(test_queries)})
 
     return
