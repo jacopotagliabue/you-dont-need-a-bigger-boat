@@ -86,9 +86,8 @@ def deploy_tf_model(model_json: str,
         endpoint_name=endpoint_name)
 
     # prepare a test input and check response
-    test_inp = {'instances': [10,124,12,45,43]+[0]*15,
+    test_inp = {'instances': [[10,124,12,45,43]+[0]*15],
                 'mask' : token_mapping['token2id'].get('mask', None)}
-
     result = predictor.predict(test_inp)
     assert result['predictions']
     print(result['predictions'])

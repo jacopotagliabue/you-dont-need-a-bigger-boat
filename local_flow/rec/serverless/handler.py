@@ -7,25 +7,24 @@ import random
 
 # grab environment variables
 SAGEMAKER_ENDPOINT_NAME = os.getenv('SAGEMAKER_ENDPOINT_NAME')
+TOKEN_MAPPING_BASENAME = os.getenv('TOKEN_MAPPING_BASENAME','token-mapping')
+TOKEN_MAPPING_FNAME = "{}-{}.json".format(TOKEN_MAPPING_BASENAME, SAGEMAKER_ENDPOINT_NAME)
 # print to AWS for debug!
 print(SAGEMAKER_ENDPOINT_NAME)
+print(TOKEN_MAPPING_FNAME)
+
 # instantiate AWS client for invoking sagemaker endpoint
 runtime = boto3.client('sagemaker-runtime')
 
-TOKEN_MAPPING_PATH = os.getenv('TOKEN_MAPPING_PATH','token_mapping.json')
-
 # load token mapping
-with open(TOKEN_MAPPING_PATH) as f:
+with open(TOKEN_MAPPING_FNAME) as f:
     token_mapping = json.load(f)
 
 token2id = token_mapping['token2id']
 id2token = token_mapping['id2token']
 VOCAB_SIZE = len(token2id)
 
-def argsort(seq):
-    #http://stackoverflow.com/questions/3382352/equivalent-of-numpy-argsort-in-basic-python/3382369#3382369
-    #by unutbu
-    return sorted(range(len(seq)), key=seq.__getitem__)
+assert VOCAB_SIZE > 0
 
 def wrap_response(status_code: int,
                   body: Dict[Any, Any]) -> Dict[str, Any]:
@@ -66,6 +65,11 @@ def get_response_from_sagemaker(model_input: str,
     # return the response body, properly decoded
     return json.loads(response['Body'].read().decode())
 
+def argsort(seq):
+    #http://stackoverflow.com/questions/3382352/equivalent-of-numpy-argsort-in-basic-python/3382369#3382369
+    #by unutbu
+    return sorted(range(len(seq)), key=seq.__getitem__)
+
 
 def predict(event: Dict[str, Any],
             context: Any) -> Dict[str, Any]:
@@ -92,22 +96,21 @@ def predict(event: Dict[str, Any],
     MASK = token2id.get('mask', None)
     # convert session sku to ids
     session_indices = [token2id.get(_, UNK) for _ in session]
-    input_payload = {'instances': session_indices, 'mask': MASK}
+    input_payload = {'instances': [session_indices], 'mask': MASK}
 
     print(input_payload)
     result = get_response_from_sagemaker(model_input=json.dumps(input_payload),
                                          endpoint_name=SAGEMAKER_ENDPOINT_NAME,
                                          content_type='application/json')
-    print(len(result))
-
+    print(result)
     if result:
         response = result['predictions'][0]
         sorted_indices = argsort(response)
-        sku_predictions = [token_mapping['id2token'][str(_)] for _ in sorted_indices]
+        sku_predictions = [token_mapping['id2token'].get(str(_),'UNK') for _ in sorted_indices]
         print(sku_predictions[:10])
 
-    return wrap_response(200, {
-        "prediction":sku_predictions[:10],
-        "time": time.time() - start,
-        "endpoint": SAGEMAKER_ENDPOINT_NAME
-    })
+        return wrap_response(200, {
+            "prediction":sku_predictions[:10],
+            "time": time.time() - start,
+            "endpoint": SAGEMAKER_ENDPOINT_NAME
+        })

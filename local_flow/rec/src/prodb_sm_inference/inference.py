@@ -5,7 +5,7 @@ def input_handler(data, context):
     # read input data
     data_str = data.read().decode("utf-8")
     jsonlines = data_str.split("\n")
-    session = json.loads(jsonlines[0])["instances"]
+    session = json.loads(jsonlines[0])["instances"][0]
     mask_id = json.loads(jsonlines[0])["mask"]
 
     # add mask
@@ -21,7 +21,7 @@ def input_handler(data, context):
 def output_handler(response, context):
 
     response_dict = response.json()
-    predictions = response_dict['predictions']
+    predictions = response_dict['predictions'][0]
 
     response_content_type = context.accept_header
     return json.dumps({'predictions':[predictions]}), response_content_type
