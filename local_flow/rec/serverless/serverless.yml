@@ -14,6 +14,7 @@ functions:
   prediction_api:
     environment:
       SAGEMAKER_ENDPOINT_NAME: ${env:SAGEMAKER_ENDPOINT_NAME}
+      TOKEN_MAPPING_BASENAME: token-mapping
     handler: handler.predict
     events:
       - http:
@@ -22,7 +23,7 @@ functions:
     package:
       patterns:
         - handler.py
-        - ${env:TOKEN_MAPPING_PATH, 'token_mapping.json'}
+        - ${env:TOKEN_MAPPING_PATH}
         - package
     iamRoleStatements:
       - Effect: "Allow"
