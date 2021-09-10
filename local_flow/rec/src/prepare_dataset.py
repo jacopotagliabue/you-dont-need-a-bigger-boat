@@ -41,7 +41,8 @@ def read_sessions_from_training_file(training_file: str, K: int = None):
         _session_id_hash = row['session_id_hash']
         # when a new session begins, store the old one and start again
         if current_session_id and current_session and _session_id_hash != current_session_id:
-            user_sessions.append(current_session)
+            if 3 <= len(current_session) <= 20:
+                user_sessions.append(current_session)
             # reset session
             current_session = []
 
