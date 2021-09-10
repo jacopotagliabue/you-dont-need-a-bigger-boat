@@ -118,7 +118,10 @@ class RecFlow(FlowSpec):
         from utils import return_json_file_content
 
         # read just a single configuration
-        self.config = return_json_file_content(os.getenv('MODEL_CONFIG_PATH'))
+        CONFIG_FILE = os.getenv('MODEL_CONFIG_PATH').format(os.getenv('MODEL_CHOICE'))
+        print("CONFIG FILE : {}".format(CONFIG_FILE))
+        self.model_choice = os.getenv('MODEL_CHOICE')
+        self.config = return_json_file_content(CONFIG_FILE)
         self.next(self.train_model)
 
     # @batch decorator used to run step on AWS Batch
@@ -129,8 +132,7 @@ class RecFlow(FlowSpec):
     @environment(vars={'WANDB_API_KEY': os.getenv('WANDB_API_KEY'),
                        'WANDB_ENTITY': os.getenv('WANDB_ENTITY'),
                        'BASE_IMAGE': os.getenv('BASE_IMAGE'),
-                       'EN_BATCH': os.getenv('EN_BATCH'),
-                       'MODEL_CHOICE': os.getenv('MODEL_CHOICE')})
+                       'EN_BATCH': os.getenv('EN_BATCH')})
     # un-comment if provided image does not contain required packages
     # @pip(libraries={'wandb': '0.10.30', 'gensim': '4.0.1'})
     @step
@@ -155,10 +157,25 @@ class RecFlow(FlowSpec):
         #            reinit=True)
 
         # choose either k-NN model or BERT model
-        if os.getenv('MODEL_CHOICE') == 'KNN':
-            self.model, self.token_mapping = train_prod2vec_model(self.dataset)
+        if self.model_choice == 'KNN':
+            self.model, self.token_mapping = train_prod2vec_model(sessions=self.dataset,
+                                                                  min_c=self.config['MIN_C'],
+                                                                  size=self.config['SIZE'],
+                                                                  window=self.config['WINDOW'],
+                                                                  iterations=self.config['ITERATIONS'],
+                                                                  ns_exponent=self.config['NS_EXPONENT'])
         else:
-            self.model, self.token_mapping = train_prodb_model(self.dataset)
+            self.model, self.token_mapping = train_prodb_model(sessions=self.dataset,
+                                                               max_len=self.config['MAX_LEN'],
+                                                               batch_size=self.config['BATCH_SIZE'],
+                                                               lr=self.config['LR'],
+                                                               embed_dim=self.config['EMBED_DIM'],
+                                                               num_head=self.config['NUM_HEAD'],
+                                                               masking_probability=self.config['MASKING_PROBABILITY'],
+                                                               ff_dim=self.config['FF_DIM'],
+                                                               num_layers=self.config['NUM_LAYERS'],
+                                                               epochs=self.config['EPOCHS'],
+                                                               data_duplication=self.config['DATA_DUPLICATION'])
 
         self.next(self.deploy)
 
