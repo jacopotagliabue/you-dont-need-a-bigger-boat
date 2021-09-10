@@ -93,6 +93,10 @@ class RecFlow(FlowSpec):
 
         self.next(self.prepare_dataset)
 
+
+    @enable_decorator(batch(cpu=8, memory=60000, image=os.getenv('BASE_IMAGE')), flag=os.getenv('EN_BATCH'))
+    @environment(vars={'BASE_IMAGE': os.getenv('BASE_IMAGE'),
+                       'EN_BATCH': os.getenv('EN_BATCH')})
     @step
     def prepare_dataset(self):
         """
@@ -101,7 +105,7 @@ class RecFlow(FlowSpec):
         from prepare_dataset import prepare_dataset
 
         self.dataset = prepare_dataset(
-            training_file=self.data_paths['browsing_train'], K=300000)
+            training_file=self.data_paths['browsing_train'], K=30000000)
 
         self.next(self.get_model_config)
 
@@ -119,7 +123,7 @@ class RecFlow(FlowSpec):
 
     # @batch decorator used to run step on AWS Batch
     # wrap batch in a switch to allow easy local testing
-    @enable_decorator(batch(gpu=1, cpu=8, image=os.getenv('BASE_IMAGE')),
+    @enable_decorator(batch(gpu=1, memory=60000, cpu=8, image=os.getenv('BASE_IMAGE')),
                       flag=os.getenv('EN_BATCH'))
     # @ environment decorator used to pass environment variables to Batch instance
     @environment(vars={'WANDB_API_KEY': os.getenv('WANDB_API_KEY'),
@@ -127,7 +131,7 @@ class RecFlow(FlowSpec):
                        'BASE_IMAGE': os.getenv('BASE_IMAGE'),
                        'EN_BATCH': os.getenv('EN_BATCH'),
                        'MODEL_CHOICE': os.getenv('MODEL_CHOICE')})
-    # un-comment if image does not contain required packages
+    # un-comment if provided image does not contain required packages
     # @pip(libraries={'wandb': '0.10.30', 'gensim': '4.0.1'})
     @step
     def train_model(self):
@@ -143,12 +147,12 @@ class RecFlow(FlowSpec):
         assert os.getenv('MODEL_CHOICE') in ['KNN','PRODB']
 
         # initialize wandb for tracking
-        wandb.init(entity=os.getenv('WANDB_ENTITY'),
-                   project="recommendation",
-                   id=current.run_id,
-                   config=self.config,
-                   resume='allow',
-                   reinit=True)
+        # wandb.init(entity=os.getenv('WANDB_ENTITY'),
+        #            project="recommendation",
+        #            id=current.run_id,
+        #            config=self.config,
+        #            resume='allow',
+        #            reinit=True)
 
         # choose either k-NN model or BERT model
         if os.getenv('MODEL_CHOICE') == 'KNN':
