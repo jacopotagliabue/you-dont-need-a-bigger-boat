@@ -57,7 +57,7 @@ def process_browsing_train(browsing_train_path):
     print('Processing {}'.format(browsing_train_path))
 
     # 30M seems to exceed some memory limit; take 1M rows for now
-    df = read_from_parquet(browsing_train_path, limit=1000000)
+    df = read_from_parquet(browsing_train_path, limit=20000000)
     # select important columns only
     df = df[['session_id_hash', 'product_action', 'product_sku_hash', 'server_timestamp_epoch_ms']]
     df['product_action'].fillna(value='', inplace=True)
