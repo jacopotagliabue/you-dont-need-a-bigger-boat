@@ -32,7 +32,7 @@ def validate_data(run_id: int, flow_name: str, data_paths: dict):
         # read data from S3
         data = pd.read_parquet(data_path, engine='pyarrow')
         # run ge checkpoint
-        context.run_checkpoint(checkpoint_name='intent_checkpoint',
+        context.run_checkpoint(checkpoint_name='recs_checkpoint',
                                # runtime batch request
                                batch_request={
                                    'datasource_name': 's3_parquet',

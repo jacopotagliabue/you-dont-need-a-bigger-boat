@@ -88,8 +88,7 @@ class RecFlow(FlowSpec):
         """
         from data_validation import validate_data
 
-        # skip for now!
-        # validate_data(current.run_id, current.flow_name, self.data_paths)
+        validate_data(current.run_id, current.flow_name, self.data_paths)
 
         self.next(self.prepare_dataset)
 
