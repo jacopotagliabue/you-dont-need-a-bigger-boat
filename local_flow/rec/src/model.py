@@ -18,18 +18,18 @@ from tensorflow.keras.backend import batch_dot
 
 @dataclass
 class ProdBConfig:
-    # default config params
-    MAX_LEN:int = 20
-    BATCH_SIZE:int = 32
-    LR:int = 0.001
-    EMBED_DIM:int = 64
-    NUM_HEAD:int = 8
-    MASKING_PROBABILITY:float = 0.25
-    FF_DIM:int = 64
-    NUM_LAYERS:int = 4
-    EPOCHS:int = 5
-    VOCAB_SIZE:int = 0
-    DATA_RATIO:int = 10  # dummy variable, we used this to understand if data size had an effect
+    # default config params, refer to https://github.com/vinid/prodb for more details
+    MAX_LEN: int = 20
+    BATCH_SIZE: int = 32
+    LR: int = 0.001
+    EMBED_DIM: int = 64
+    NUM_HEAD: int = 8
+    MASKING_PROBABILITY: float = 0.25
+    FF_DIM: int = 64
+    NUM_LAYERS: int = 4
+    EPOCHS: int = 5
+    VOCAB_SIZE: int = 0
+    DATA_RATIO: int = 10
 
 
 def prodb_inference_model(prodb_model):
@@ -46,16 +46,16 @@ def prodb_inference_model(prodb_model):
 
 
 def train_prodb_model(sessions: dict,
-                      max_len:int = 20,
-                      batch_size:int = 32,
-                      lr:int = 0.001,
-                      embed_dim:int = 64,
-                      num_head:int = 8,
-                      masking_probability:float = 0.25,
-                      ff_dim:int = 64,
-                      num_layers:int = 4,
-                      epochs:int = 5,
-                      data_duplication:int = 1):
+                      max_len: int = 20,
+                      batch_size: int = 32,
+                      lr: int = 0.001,
+                      embed_dim: int = 64,
+                      num_head: int = 8,
+                      masking_probability: float = 0.25,
+                      ff_dim: int = 64,
+                      num_layers: int = 4,
+                      epochs: int = 5,
+                      data_duplication: int = 1):
     # ProdB configuration class
     config = ProdBConfig(MAX_LEN=max_len,
                          BATCH_SIZE=batch_size,
@@ -71,12 +71,11 @@ def train_prodb_model(sessions: dict,
     train_sessions = [' '.join(_) for _ in sessions['train']]
     # set vocab size based on training sessions
     config.VOCAB_SIZE = len({_ for s in sessions['train'] for _ in s})
-
     print('Init ProdB model')
     # init prodb model and duplicate data
     prodb_model = ProdB(train_sessions*data_duplication, config)
     # call model.fit
-    print('Training ProdB model')
+    print('Training ProdB model...')
     prodb_model()
     # wrap MLM in an inference friendly model
     model = prodb_inference_model(prodb_model)
@@ -84,7 +83,6 @@ def train_prodb_model(sessions: dict,
     # print(model(np.array([ [10,124,12,45,43]+[0]*15 ])))
 
     hit_rate_at_k(rec_model=model,
-                  representation='mean',
                   token2id=prodb_model.token2id,
                   id2token=prodb_model.id2token,
                   sessions=sessions['valid'])
@@ -130,7 +128,7 @@ def knn_inference_model(vector_dims: int,
     # get all vectors
     all_vectors = word_embeddings(np.array([[idx for idx in range(vocab_size)]]))
     # compute cosine distance/dot product using batch_dot (auto broadcasting)
-    cosine_distance = batch_dot(tf.expand_dims(query_vector,axis=1), all_vectors, axes=2)
+    cosine_distance = batch_dot(tf.expand_dims(query_vector, axis=1), all_vectors, axes=2)
     # remove extra dimension
     output = layers.Reshape((vocab_size,))(cosine_distance)
     # build functional model
@@ -186,7 +184,6 @@ def train_prod2vec_model(sessions: dict,
     # print([ token2id[_[0]] for _ in model.wv.similar_by_word(id2token[0])])
 
     hit_rate_at_k(rec_model=knn_model,
-                  representation='mean',
                   token2id=token2id,
                   id2token=id2token,
                   sessions=sessions['valid'])
@@ -203,11 +200,10 @@ def train_prod2vec_model(sessions: dict,
 
 
 def hit_rate_at_k(rec_model,
-                  representation: str,
                   token2id: dict,
                   id2token: dict,
                   sessions: list,
-                  k: int=10):
+                  k: int = 10):
     print('Evaluating HR@{}'.format(k))
     all_skus_idx = list(id2token.keys())
     test_queries = sessions
@@ -217,7 +213,7 @@ def hit_rate_at_k(rec_model,
     for idx, t in enumerate(test_queries[:10000]):
         # debug
         if idx % 10000 == 0:
-            print('Processed {}/{} test queries'.format(idx,len(test_queries)))
+            print('Processed {}/{} test queries'.format(idx, len(test_queries)))
             print('Running HR@{} is {}'.format(k, hits/(idx+1)))
             print('\n')
 
@@ -241,7 +237,8 @@ def hit_rate_at_k(rec_model,
         if _products_in_session:
             # if mask token exists, add to end of seq
             if 'mask' in token2id:
-                _products_in_session_padded = _products_in_session[-19:] + [token2id['mask']] + [0] * (20 - len(_products_in_session[-19:]) - 1)
+                _products_in_session_padded = _products_in_session[-19:] + [token2id['mask']] + \
+                                              [0] * (20 - len(_products_in_session[-19:]) - 1)
             else:
                 _products_in_session_padded = _products_in_session[-19:] + [0]*(20-len(_products_in_session[-19:]))
             predictions = rec_model(np.array([_products_in_session_padded]))[0]
@@ -254,7 +251,7 @@ def hit_rate_at_k(rec_model,
         # print('\n')
         # if target in top_k predictions
         if target in next_skus:
-            hits+=1
+            hits += 1
 
     # print out some "coverage"
     print("Predictions made in {} out of {} total test cases".format(cnt_preds, len(test_queries)))
