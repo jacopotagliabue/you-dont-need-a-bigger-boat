@@ -1,4 +1,4 @@
-service: intent-prediction-endpoint
+service: recommendation-prediction-endpoint
 
 provider:
   name: aws
@@ -9,6 +9,10 @@ provider:
 
 package:
   individually: true
+  patterns:
+    - "!*/**"
+    - "!*"
+
 
 functions:
   prediction_api:
@@ -23,8 +27,7 @@ functions:
     package:
       patterns:
         - handler.py
-        - ${env:TOKEN_MAPPING_PATH}
-        - package
+        - token-mapping-${env:SAGEMAKER_ENDPOINT_NAME}.json
     iamRoleStatements:
       - Effect: "Allow"
         Action:
