@@ -7,8 +7,8 @@
 
 This version of the pipeline utilizes Metaflow as the main pipeline orchestrator.
 We provide two local flows, one deploying a model for intent prediction, another deploying a model for recommendation prediction.
-This README provides an overview of the local version of pipeline and contains setup instructions specific to this local version,
-as well as instructions specific to the intent prediction model and recommendation model.
+This README provides an overview of the local version of pipeline and contains setup instructions specific to this local version as a whole,
+as well as instructions that may be specific to the intent prediction model and recommendation model.
 For the general prerequisites, Metaflow setup and background information about the pipeline, please refer to the main README.
 
 
@@ -24,13 +24,14 @@ As seen in the above diagram, there are four main steps in the flow:
 ## Requirements / Prerequisites
 
 We specify certain variables and secrets in an environment file `.env` and load them
-during runtime using `dotenv`. Make a copy of `.env.local` and rename it as `.env`.
+during runtime using `dotenv`. Make a copy of `example.env` and rename it as `.env`.
 
 We describe the basic setup required to run this flow, and the environment variables required below.
 
 ### Packages
 
 - Install required python packages as per `requirements.txt` in `local_flow/intent` or `local_flow/rec`;
+- For `rec`, installation of `prodb` is required and can be found [here](https://github.com/vinid/prodb).
 
 [comment]: <> (- Install Gantry as per the gantry [guide]&#40;https://docs.gantry.io/en/latest/how-to/installation.html&#41;.)
 
@@ -56,9 +57,9 @@ Further information about Weights & Biases environment variables can be found
 
 ### Sagemaker
 
-You need to have appropriate permissions for Sagemaker in AWS and specify the instance type for deployment.
+You need to have appropriate permissions for Sagemaker in AWS and specify the instance type for use in deployment.
   - `IAM_SAGEMAKER_ROLE`
-  - `SAGEMAKER_INSTANCE`
+  - `SAGEMAKER_INSTANCE`: AWS instance types can be found [here](https://aws.amazon.com/ec2/instance-types/)
 
 ### Local Dataset Upload
 
