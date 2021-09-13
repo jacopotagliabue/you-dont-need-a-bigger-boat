@@ -9,7 +9,7 @@ upload:
 	${WITH_ENV} python local_dataset_upload.py
 
 run:
-	${WITH_ENV} python src/cart_baseline_flow.py --no-pylint run --max-workers 8
+	${WITH_ENV} python src/rec_baseline_flow.py run --max-workers 8
 
 deploy:
 	${WITH_ENV} cd serverless && serverless deploy
