@@ -16,12 +16,11 @@ This repository (and soon-to-be-drafted written tutorial) aims to fill these gap
 
 * we provide open-source working code that glues together what we believe are some of the best tools in the ecosystem,
 going  _all the way_ from raw data to a deployed endpoint serving predictions;
-* we run the pipeline under a realistic load for companies at "[reasonable scale](https://lnkd.in/e2yTyVk)", leveraging
+* we run the pipeline under a realistic load for companies at "[reasonable scale](https://www.youtube.com/watch?v=Ndxpo4PeEms)", leveraging
 a huge [open dataset](https://arxiv.org/abs/2104.09423) we released in 2021; moreover, we train a model for a real-world
 use case, and show how to monitor it after deployment.
 
-The repo may also be seen as a (very opinionated) introduction to modern, PaaS-like pipelines; while there is obviously
-room for disagreement over tool X or tool Y, we believe the general principles to be sound for companies at
+The repo may also be seen as a (very opinionated) introduction to modern, PaaS-like pipelines (as also discussed [here](https://www.youtube.com/watch?v=Ndxpo4PeEms)); while there is obviously room for disagreement over tool X or tool Y, we believe the general principles to be sound for companies at
 "reasonable scale": in-between bare-bone infrastructure for Tech Giants, and ready-made solutions for low-code/simple
 scenarios, there is a world of exciting machine learning at scale for sophisticated practitioners who don't want to
 waste their time managing cloud resources.
@@ -30,7 +29,7 @@ waste their time managing cloud resources.
 
 *Note #2*: when we say the pipeline is an "end-to-end solution", we *mean* it - it goes from millions of raw events
 to a working endpoint that you can ping. As such, there are *many* moving pieces and it may take a while to understand how all of it works and how
-all the pieces fit together: we are doing what we can to explain and document everything (a blog post is forthcoming!), but this is not _per se_ a 10 minutes [tutorial on Metaflow](https://towardsdatascience.com/noops-machine-learning-3893a42e32a4?gi=5ebb644fa4ff); however, if you wonder how popular tools can be put to work in a real scenario, this repository provides a stack tried and tested at [unicorn](https://en.wikipedia.org/wiki/Unicorn_(finance)) scale.
+all the pieces fit together: we are trying to document everything (a blog post is forthcoming!), but this is not _per se_ a 10 minutes [tutorial on Metaflow](https://towardsdatascience.com/noops-machine-learning-3893a42e32a4?gi=5ebb644fa4ff); however, if you wonder how popular tools can be put to work in a real scenario, this repository provides a stack tried and tested at [unicorn](https://en.wikipedia.org/wiki/Unicorn_(finance)) scale.
 
 ## Overview
 The repo shows how several (mostly open-source) tools can be effectively combined together to run data pipelines. The
@@ -42,7 +41,7 @@ project current features:
 * [dbt](https://www.getdbt.com) for data transformation (Alternatives: ?)
 * [Great Expectations](https://greatexpectations.io/) for data quality (Alternatives: [dbt-expectations plugin](https://github.com/calogica/dbt-expectations))
 * [Weights&Biases](https://wandb.ai/site) for experiment tracking (Alternatives: [Comet](https://www.comet.ml/))
-* [Gantry](https://gantry.io/) for ML monitoring (Alternatives: [Aporia](https://www.aporia.com/))
+* [Gantry](https://gantry.io/) for ML monitoring (Alternatives: [Aporia](https://www.aporia.com/), [Evidently](https://evidentlyai.com/))
 * [Sagemaker](https://aws.amazon.com/sagemaker/) / [Lambda](https://aws.amazon.com/lambda/) for model serving (Alternatives: many)
 
 The following picture from our Recsys paper (forthcoming) gives a quick overview of such a pipeline:
@@ -62,13 +61,13 @@ The parallelism between the two scenarios should be pretty clear by looking at t
 all the tools for the first time, we suggest you to start from the _Metaflow_ version and then move to the full-scale one
 when all the pieces of the puzzle are well understood.
 
-*Note*: if you are new to Metaflow, we recommend you to go through the [official installation](https://docs.metaflow.org/getting-started/install) and this  [stand-alone tutorial](https://github.com/jacopotagliabue/no-ops-machine-learning) first.
+*Note*: if you are new to Metaflow, we recommend you to go through the [official installation](https://docs.metaflow.org/getting-started/install) and this [stand-alone tutorial](https://github.com/jacopotagliabue/no-ops-machine-learning) first.
 
 ### Relevant Material
 
 If you want to know more, you can give a look at the following material:
 
-* ["Serverless MLOps for Reasonable Companies"](https://lnkd.in/e2yTyVk) (video), `Data Science Meetup`, June 2021;
+* ["ML Ops at Reasonable Scale"](https://www.youtube.com/watch?v=Ndxpo4PeEms) (video), `Stanford MLSys`, July 2021;
 * ["You Do Not Need a Bigger Boat: Recommendations at Reasonable Scale in a (Mostly) Serverless and Open Stack"](https://arxiv.org/abs/2107.07346) 
 (preprint), `RecSys 2021`.
 
@@ -187,6 +186,14 @@ Any serverless option there as well?
    and old [code](https://github.com/jacopotagliabue/pixel_from_lambda).
 
 *TBC*
+
+## Contributors
+
+* [Jacopo Tagliabue](https://www.linkedin.com/in/jacopotagliabue/): general design and Metaflow fan boy;
+* [Patrick John Chia](https://www.linkedin.com/in/patrick-john-chia-b0a34019b/): local flow and baseline model;
+* [Luca Bigon](https://www.linkedin.com/in/bigluck/): general engineering and infra optimization;
+* [Andrew Sutcliffe](https://www.linkedin.com/in/asutcl/): remote flow;
+* [Leopoldo Garcia Vargas](https://www.linkedin.com/in/leopoldo-garcia-vargas-29932a89/): QA and tests.
 
 ## How to Cite our Work
 
