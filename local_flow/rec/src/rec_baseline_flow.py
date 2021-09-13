@@ -117,6 +117,8 @@ class RecFlow(FlowSpec):
         """
         from utils import return_json_file_content
 
+        assert os.getenv('MODEL_CHOICE') in ['KNN', 'PRODB']
+
         # read just a single configuration
         CONFIG_FILE = os.getenv('MODEL_CONFIG_PATH').format(os.getenv('MODEL_CHOICE'))
         print("CONFIG FILE : {}".format(CONFIG_FILE))
@@ -146,7 +148,6 @@ class RecFlow(FlowSpec):
 
         assert os.getenv('WANDB_API_KEY')
         assert os.getenv('WANDB_ENTITY')
-        assert os.getenv('MODEL_CHOICE') in ['KNN','PRODB']
 
         # initialize wandb for tracking
         # wandb.init(entity=os.getenv('WANDB_ENTITY'),
