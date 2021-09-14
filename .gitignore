@@ -130,7 +130,7 @@ dmypy.json
 
 .idea/
 .metaflow/
-*/wandb
+**/wandb
 /remote_flow/data/*.csv
 
 *.ini
@@ -141,6 +141,9 @@ admin.env
 .env
 _meta
 .serverless
+**/serverless/packages
+**/serverless/*.json
 
 # Misc
 .DS_Store
+prodb

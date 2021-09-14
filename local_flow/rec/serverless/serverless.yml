@@ -1,0 +1,46 @@
+service: recommendation-prediction-endpoint
+
+provider:
+  name: aws
+  runtime: python3.8
+  stage: ${env:STAGE, 'dev'}
+  region: ${env:AWS_DEFAULT_REGION, 'us-west-2'}
+  lambdaHashingVersion: 20201221
+
+package:
+  individually: true
+  patterns:
+    - "!*/**"
+    - "!*"
+
+
+functions:
+  prediction_api:
+    environment:
+      SAGEMAKER_ENDPOINT_NAME: ${env:SAGEMAKER_ENDPOINT_NAME}
+      TOKEN_MAPPING_BASENAME: token-mapping
+    handler: handler.predict
+    events:
+      - http:
+          path: predict
+          method: get
+    package:
+      patterns:
+        - handler.py
+        - token-mapping-${env:SAGEMAKER_ENDPOINT_NAME}.json
+    iamRoleStatements:
+      - Effect: "Allow"
+        Action:
+          - sagemaker:InvokeEndpoint
+        Resource:
+          Fn::Join:
+            - ':'
+            - - arn
+              - aws
+              - sagemaker
+              - Ref: AWS::Region
+              - Ref: AWS::AccountId
+              - endpoint/${env:SAGEMAKER_ENDPOINT_NAME}
+
+plugins:
+  - serverless-iam-roles-per-function

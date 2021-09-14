@@ -1,0 +1,7 @@
+{
+  "MIN_C":3,
+  "SIZE":48,
+  "WINDOW":5,
+  "ITERATIONS":15,
+  "NS_EXPONENT":0.75
+}
