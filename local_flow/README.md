@@ -45,6 +45,10 @@ for images made available by AWS.
 - `RAPIDS_IMAGE`: Docker image with [RAPIDS installed](https://rapids.ai/start.html#get-rapids)
 - `DOCKER_IMAGE`: Docker image for Sagemaker endpoint
 
+
+- For `recs`, model training requires either [prodb](https://github.com/vinid/prodb) or [gensim](https://radimrehurek.com/gensim/).
+It is advised to have these pre-packaged into the `BASE_IMAGE`docker image.
+
 ### Weights & Biases
 
 To utilise Weights & Biases, you need to obtain your account specific API key and specify the entity which you
@@ -59,7 +63,7 @@ Further information about Weights & Biases environment variables can be found
 
 You need to have appropriate permissions for Sagemaker in AWS and specify the instance type for use in deployment.
   - `IAM_SAGEMAKER_ROLE`
-  - `SAGEMAKER_INSTANCE`: AWS instance types can be found [here](https://aws.amazon.com/ec2/instance-types/)
+  - `SAGEMAKER_INSTANCE`: AWS instance types can be found [here](https://aws.amazon.com/ec2/instance-types/).
 
 ### Local Dataset Upload
 
@@ -77,7 +81,7 @@ configured for use with Metaflow (i.e. `METAFLOW_DATATOOLS_SYSROOT_S3`).
 - Execute the following to upload the dataset (this might take a while depending
   on your internet connection):
   ```
-  METAFLOW_PROFILE=metaflow python local_dataset_upload.py
+  make upload
   ```
 
 ### ML Model Configuration
