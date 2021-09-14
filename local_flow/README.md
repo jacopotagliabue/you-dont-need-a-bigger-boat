@@ -21,6 +21,27 @@ As seen in the above diagram, there are four main steps in the flow:
 
 [comment]: <> (   Gantry is used here for model monitoring.)
 
+## Environment
+
+We suggest the use of `virtualenv` to organize dependencies.
+
+A `Makefile` has also been provided to help you launch the proper commands.
+
+
+To create a virtualenv for the local flow:
+
+1. `cd` into the `local_flow` directory
+2. Create the virtualenv with the following command
+
+```
+$ python -m venv local-flow-env
+```
+3. Activate the venv with the following command
+
+```
+$ source local-flow-env/bin/activate
+```
+
 ## Requirements / Prerequisites
 
 We specify certain variables and secrets in an environment file `.env` and load them
@@ -33,6 +54,10 @@ We describe the basic setup required to run this flow, and the environment varia
 - Install required python packages as per `requirements.txt` in `local_flow/intent` or `local_flow/rec`;
 - For `rec`, installation of `prodb` is required and can be found [here](https://github.com/vinid/prodb).
 
+```
+$ pip3 install -r requirements.txt
+```
+
 [comment]: <> (- Install Gantry as per the gantry [guide]&#40;https://docs.gantry.io/en/latest/how-to/installation.html&#41;.)
 
 ### Docker Images
@@ -41,7 +66,7 @@ Several docker images are required for use with AWS Batch in Metaflow and
 for model serving on SageMaker. See [here](https://github.com/aws/deep-learning-containers/blob/master/available_images.md)
 for images made available by AWS.
 
-- `BASE_IMAGE`: Docker image for GPU training.
+- `BASE_IMAGE`: Docker image for GPU training
 - `RAPIDS_IMAGE`: Docker image with [RAPIDS installed](https://rapids.ai/start.html#get-rapids)
 - `DOCKER_IMAGE`: Docker image for Sagemaker endpoint
 
@@ -114,25 +139,24 @@ performed the dataset upload into S3 as described above.
 - Execute the following to initiate a run:
 
   ```
-    python src/<cart_or_rec>_baseline_flow.py run --max-workers 8
+  $ make run
   ```
 - You can also specify the Metaflow profile associated with your Metaflow setup as per the main README:
 
   ```
-    METAFLOW_PROFILE=<METAFLOW_PROFILE_NAME> python src/<cart_or_rec>_baseline_flow.py --no-pylint run --max-workers 8
+  $ METAFLOW_PROFILE=<METAFLOW_PROFILE_NAME> make run
   ```
 
 ### Running Serverless
 -  Once the flow is completed, we can expose the SageMaker model via a serverless endpoint;
 -  Obtain `SAGE_MAKER_ENDPOINT_NAME` from output of `deploy` step in Metaflow;
-- `cd` into serverless folder;
 -  Execute the following:
-   ```
-   serverless deploy --sagemaker <SAGEMAKER_ENDPOINT_NAME>
-   ```
+    ```
+    $ SAGEMAKER_ENDPOINT_NAME=<SAGEMAKER_ENDPOINT_NAME> make deploy
+    ```
 - You can also specify an AWS profile that is configured with the required permissions for serverless:
   ```
-  serverless deploy --sagemaker <SAGEMAKER_ENDPOINT_NAME> --aws-profile <AWS_SERVERLESS_PROFILE>
+  $ AWS_PROFILE=<AWS_SERVERLESS_PROFILE> SAGEMAKER_ENDPOINT_NAME=<SAGEMAKER_ENDPOINT_NAME> make deploy
   ```
 
 - Test your endpoint for intent prediction, pass in a sequence of click events as follows,
