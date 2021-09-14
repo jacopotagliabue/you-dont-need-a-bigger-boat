@@ -67,7 +67,7 @@ def deploy_tf_model(model_json: str,
 
 
     # generate a signature for the endpoint using timestamp
-    endpoint_name = 'intent-{}-endpoint'.format(int(round(time.time() * 1000)))
+    endpoint_name = 'recommendation-{}-endpoint'.format(int(round(time.time() * 1000)))
 
     # print out the name, so that we can use it when deploying our lambda
     print("\n\n================\nEndpoint name is: {}\n\n".format(endpoint_name))

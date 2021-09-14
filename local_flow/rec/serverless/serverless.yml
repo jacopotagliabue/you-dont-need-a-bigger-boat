@@ -13,7 +13,6 @@ package:
     - "!*/**"
     - "!*"
 
-
 functions:
   prediction_api:
     environment:
