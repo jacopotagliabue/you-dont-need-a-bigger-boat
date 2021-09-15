@@ -31,20 +31,27 @@ def read_sessions_from_training_file(training_file: str, K: int = None):
     user_sessions = []
     current_session = []
     current_session_id = None
+    current_session_time = None
 
     reader = pd.read_parquet(training_file)
     for idx, row in reader.iterrows():
         # if a max number of items is specified, just return at the K with what you have
         if K and idx >= K:
             break
-        # row will contain: session_id_hash, product_action, product_sku_hash
+        # row will contain: session_id_hash, product_action, product_sku_hash, server_timestamp_epoch_ms
         _session_id_hash = row['session_id_hash']
+
+        if current_session_time is None:
+            current_session_time = row['server_timestamp_epoch_ms']
+
         # when a new session begins, store the old one and start again
         if current_session_id and current_session and _session_id_hash != current_session_id:
             if 3 <= len(current_session) <= 20:
-                user_sessions.append(current_session)
+                # retain session if within reasonable range
+                user_sessions.append({'session_start_time':current_session_time, 'session': current_session})
             # reset session
             current_session = []
+            current_session_time = row['server_timestamp_epoch_ms']
 
         current_session.append(row['product_sku_hash'])
         # update the current session id
@@ -54,12 +61,19 @@ def read_sessions_from_training_file(training_file: str, K: int = None):
     print("# total sessions: {}".format(len(user_sessions)))
     # print first one to check
     print("First session is: {}".format(user_sessions[0]))
+    print(user_sessions[0]['session_start_time'])
+    print(user_sessions[10]['session_start_time'])
 
+    # sort by start time; ascending
+    user_sessions = sorted(user_sessions,
+                           key=lambda _ : _['session_start_time'],
+                           reverse=False)
+    # extract sessions only
 
-    # sample 0.8 for training, 0.2 for validation
-    random.shuffle(user_sessions)
-    train_sessions = user_sessions[:int(len(user_sessions)*0.8)]
-    valid_sessions = user_sessions[int(len(user_sessions)*0.8):]
+    user_sessions = [ _['session'] for _ in user_sessions]
+    # sample 0.95 for training, 0.05 for validation
+    train_sessions = user_sessions[:int(len(user_sessions)*0.95)]
+    valid_sessions = user_sessions[int(len(user_sessions)*0.95):]
 
     return {
             'train': train_sessions,
