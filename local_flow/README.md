@@ -6,9 +6,9 @@
 ![local_flow_diagram](imgs/local_flow.png)
 
 This version of the pipeline utilizes Metaflow as the main pipeline orchestrator.
-We provide two local flows, one deploying a model for intent prediction, another deploying a model for recommendation prediction.
-This README provides an overview of the local version of pipeline and contains setup instructions specific to this local version as a whole,
-as well as instructions that may be specific to the intent prediction model and recommendation model.
+We provide two local flows, one deploying a model for intent prediction (cart abandonment), another deploying a model for recommendation prediction.
+This README provides an overview of the local version of the pipeline and contains setup instructions specific to this local version as a whole,
+as well as instructions that may be specific to the intent prediction model or recommendation model.
 For the general prerequisites, Metaflow setup and background information about the pipeline, please refer to the main README.
 
 
@@ -25,22 +25,28 @@ As seen in the above diagram, there are four main steps in the flow:
 
 We suggest the use of `virtualenv` to organize dependencies.
 
-A `Makefile` has also been provided to help you launch the proper commands.
+A `Makefile` has also been provided to help you launch the proper commands. It passes into commands, environment variables
+such as `AWS_PROFILE` as specified in the file `.env`. You can also pass environment variables through `make` for e.g.:
 
+  ```
+  $ AWS_PROFILE=my_profile make deploy
+  ```
+
+Note that if the same variables is defined in `.env` it will take precedence.
 
 To create a virtualenv for the local flow:
 
 1. `cd` into the `local_flow` directory
 2. Create the virtualenv with the following command
 
-```
-$ python -m venv local-flow-env
-```
+  ```
+  $ python -m venv local-flow-env
+  ```
 3. Activate the venv with the following command
 
-```
-$ source local-flow-env/bin/activate
-```
+  ```
+  $ source local-flow-env/bin/activate
+  ```
 
 ## Requirements / Prerequisites
 
@@ -51,12 +57,11 @@ We describe the basic setup required to run this flow, and the environment varia
 
 ### Packages
 
-- Install required python packages as per `requirements.txt` in `local_flow/intent` or `local_flow/rec`;
+- Install required python packages as per `requirements.txt` in `local_flow/intent` or `local_flow/rec`:
+  ```
+  $ pip3 install -r requirements.txt
+  ```
 - For `rec`, installation of `prodb` is required and can be found [here](https://github.com/vinid/prodb).
-
-```
-$ pip3 install -r requirements.txt
-```
 
 [comment]: <> (- Install Gantry as per the gantry [guide]&#40;https://docs.gantry.io/en/latest/how-to/installation.html&#41;.)
 
@@ -71,8 +76,8 @@ for images made available by AWS.
 - `DOCKER_IMAGE`: Docker image for Sagemaker endpoint
 
 
-- For `recs`, model training requires either [prodb](https://github.com/vinid/prodb) or [gensim](https://radimrehurek.com/gensim/).
-It is advised to have these pre-packaged into the `BASE_IMAGE`docker image.
+- For `rec`, model training requires either [prodb](https://github.com/vinid/prodb) or [gensim](https://radimrehurek.com/gensim/).
+It is advised to have these pre-packaged into the `BASE_IMAGE` docker image.
 
 ### Weights & Biases
 
@@ -106,7 +111,7 @@ configured for use with Metaflow (i.e. `METAFLOW_DATATOOLS_SYSROOT_S3`).
 - Execute the following to upload the dataset (this might take a while depending
   on your internet connection):
   ```
-  make upload
+  $ make upload
   ```
 
 ### ML Model Configuration
@@ -116,16 +121,20 @@ We define the parameters for the intent prediction model in a `config.json` as s
 the environment variable `MODEL_CONFIG_PATH`.
 
 #### Recommendation Model
-Since there are types of two models available for recommendation, we distinguish their parameters by having one
+Since there are two types models available for recommendation, we distinguish their parameters by having one
 configuration file for each (i.e `config_KNN.json` and `config_PRODB.json`)
 
-The environment variable `MODEL_CONFIG_PATH` specifies the basename `config_<MODEL_CHOICE>` and the model selected for
+The environment variable `MODEL_CONFIG_PATH` specifies the basename `config_<MODEL_CHOICE>.json` and the model selected for
 use is specified by the environment variable `MODEL_CHOICE` which accepts only `KNN` or `PRODB` as value.
 
 ### Serverless
 
 For serverless, we utilize the Serverless [IAM Roles per function](https://www.serverless.com/plugins/serverless-iam-roles-per-function)
 plugin. This will grant the Lambda function the necessary privileges to access the SageMaker endpoint.
+
+The AWS profile used for deployment can be specified in `.env` with the variables:
+- `AWS_PROFILE`
+- `AWS_DEFAULT_REGION`
 
 
 ## How to Run
@@ -154,17 +163,18 @@ performed the dataset upload into S3 as described above.
     ```
     $ SAGEMAKER_ENDPOINT_NAME=<SAGEMAKER_ENDPOINT_NAME> make deploy
     ```
-- You can also specify an AWS profile that is configured with the required permissions for serverless:
+- Another way to specify an AWS profile that is configured with the required permissions for serverless is as follows,
   ```
   $ AWS_PROFILE=<AWS_SERVERLESS_PROFILE> SAGEMAKER_ENDPOINT_NAME=<SAGEMAKER_ENDPOINT_NAME> make deploy
   ```
 
-- Test your endpoint for intent prediction, pass in a sequence of click events as follows,
+
+- Test your endpoint for intent prediction, pass in a sequence of click events such as,
   ```
   https://<SERVERLESS_ENDPOINT>/dev/predict?session=add,view,remove
   ```
 
-- Test your endpoint for recommendation, pass in a sequence of product SKU as follows,
+- Test your endpoint for recommendation, pass in a sequence of product SKU such as,
   ```
   https://<SERVERLESS_ENDPOINT>/dev/predict?session=<SKU1>,<SKU2>
   ```
