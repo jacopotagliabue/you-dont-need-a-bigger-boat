@@ -45,6 +45,48 @@ def prodb_inference_model(prodb_model):
     return inference_model
 
 
+def knn_inference_model(vector_dims: int,
+                        vocab_size: int,
+                        wv_model,
+                        id2token: dict):
+    # get normalized vectors from trained gensim model
+    embedding_matrix = np.array([wv_model.get_vector(id2token[idx+1], norm=True) for idx in range(vocab_size)])
+    # reserve idx=0 for masking
+    embedding_weights = np.vstack((np.zeros((1, vector_dims)),
+                                   embedding_matrix))
+    print('Embedding Matrix Shape : {}'.format(embedding_matrix.shape))
+
+    # initialize embedding layer with pretrained vectors
+    word_embeddings = layers.Embedding(input_dim=vocab_size + 1,
+                                       output_dim=vector_dims,
+                                       mask_zero=True,
+                                       weights=[embedding_weights],
+                                       trainable=False,
+                                       name="word_embedding")
+    # input is seq of N=20 past interactions
+    inputs = layers.Input((20,))
+    # mask zero inputs
+    inp_masked = layers.Masking()(inputs)
+    # get embeddings for seq
+    query_vectors = word_embeddings(inp_masked)
+    # get query vector as average
+    query_vector = layers.GlobalAveragePooling1D()(query_vectors)
+    # get all vectors
+    all_vectors = word_embeddings(np.array([[idx for idx in range(vocab_size)]]))
+    # compute cosine distance/dot product using batch_dot (auto broadcasting)
+    cosine_distance = batch_dot(tf.expand_dims(query_vector, axis=1), all_vectors, axes=2)
+    # remove extra dimension
+    output = layers.Reshape((vocab_size,))(cosine_distance)
+    # build functional model
+    model = Model(inputs=inputs,
+                  outputs=output,
+                  name='cosine-distance-model')
+    # compile model
+    model.compile()
+    # debug
+    # model.summary()
+    return model
+
 def train_prodb_model(sessions: dict,
                       max_len: int = 20,
                       batch_size: int = 32,
@@ -81,11 +123,13 @@ def train_prodb_model(sessions: dict,
     model = prodb_inference_model(prodb_model)
     # debug
     # print(model(np.array([ [10,124,12,45,43]+[0]*15 ])))
+    validation_hr = hit_rate_at_k(rec_model=model,
+                                  token2id=prodb_model.token2id,
+                                  id2token=prodb_model.id2token,
+                                  sessions=sessions['valid'])
 
-    hit_rate_at_k(rec_model=model,
-                  token2id=prodb_model.token2id,
-                  id2token=prodb_model.id2token,
-                  sessions=sessions['valid'])
+    wandb.log({"HR@10": validation_hr})
+
     # return MLM weights and token mappings
     return {
                'model': model.to_json(),
@@ -96,50 +140,6 @@ def train_prodb_model(sessions: dict,
                 'token2id': prodb_model.token2id,
                 'id2token': prodb_model.id2token
            }
-
-
-def knn_inference_model(vector_dims: int,
-                        vocab_size: int,
-                        wv_model,
-                        id2token: dict):
-    # get normalized vectors from trained gensim model
-    embedding_matrix = np.array([wv_model.get_vector(id2token[idx+1], norm=True) for idx in range(vocab_size)])
-    # reserve idx=0 for masking
-    embedding_weights = np.vstack((np.zeros((1, vector_dims)),
-                                   embedding_matrix))
-    print('Embedding Matrix Shape : {}'.format(embedding_matrix.shape))
-
-    # initialize embedding layer with pretrained vectors
-    word_embeddings = layers.Embedding(input_dim=vocab_size + 1,
-                                       output_dim=vector_dims,
-                                       mask_zero=True,
-                                       weights=[embedding_weights],
-                                       trainable=False,
-                                       name="word_embedding")
-
-    # input is seq of N=20 past interactions
-    inputs = layers.Input((20,))
-    # mask zero inputs
-    inp_masked = layers.Masking()(inputs)
-    # get embeddings for seq
-    query_vectors = word_embeddings(inp_masked)
-    # get query vector as average
-    query_vector = layers.GlobalAveragePooling1D()(query_vectors)
-    # get all vectors
-    all_vectors = word_embeddings(np.array([[idx for idx in range(vocab_size)]]))
-    # compute cosine distance/dot product using batch_dot (auto broadcasting)
-    cosine_distance = batch_dot(tf.expand_dims(query_vector, axis=1), all_vectors, axes=2)
-    # remove extra dimension
-    output = layers.Reshape((vocab_size,))(cosine_distance)
-    # build functional model
-    model = Model(inputs=inputs,
-                  outputs=output,
-                  name='cosine-distance-model')
-    # compile model
-    model.compile()
-    # debug
-    # model.summary()
-    return model
 
 
 def train_prod2vec_model(sessions: dict,
@@ -183,10 +183,11 @@ def train_prod2vec_model(sessions: dict,
     # print(response)
     # print([ token2id[_[0]] for _ in model.wv.similar_by_word(id2token[0])])
 
-    hit_rate_at_k(rec_model=knn_model,
-                  token2id=token2id,
-                  id2token=id2token,
-                  sessions=sessions['valid'])
+    validation_hr = hit_rate_at_k(rec_model=knn_model,
+                                  token2id=token2id,
+                                  id2token=id2token,
+                                  sessions=sessions['valid'])
+    wandb.log({"HR@10": validation_hr})
 
     return {
                 'model': knn_model.to_json(),
@@ -210,12 +211,11 @@ def hit_rate_at_k(rec_model,
     cnt_preds = 0
     hits = 0
     # loop over the records and predict the next event
-    for idx, t in enumerate(test_queries[:10000]):
+    for idx, t in enumerate(test_queries):
         # debug
         if idx % 10000 == 0:
-            print('Processed {}/{} test queries'.format(idx, len(test_queries)))
+            print('\nProcessed {}/{} test queries'.format(idx, len(test_queries)))
             print('Running HR@{} is {}'.format(k, hits/(idx+1)))
-            print('\n')
 
         # if unknown product, will never hit
         if t[-1] not in token2id:
@@ -249,7 +249,6 @@ def hit_rate_at_k(rec_model,
         # print('target is : {}'.format(target))
         # print(next_skus)
         # print('\n')
-        # if target in top_k predictions
         if target in next_skus:
             hits += 1
 
@@ -257,6 +256,5 @@ def hit_rate_at_k(rec_model,
     print("Predictions made in {} out of {} total test cases".format(cnt_preds, len(test_queries)))
     # check hit rate as metric
     print("HR@{} : {}".format(k, hits/len(test_queries)))
-    # wandb.log({"HR@{}".format(k): hits / len(test_queries)})
 
-    return
+    return hits/len(test_queries)
