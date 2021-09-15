@@ -103,8 +103,8 @@ class RecFlow(FlowSpec):
         """
         from prepare_dataset import prepare_dataset
 
-        self.dataset = prepare_dataset(
-            training_file=self.data_paths['browsing_train'], K=30000000)
+        self.dataset = prepare_dataset(training_file=self.data_paths['browsing_train'],
+                                       K=30000000)
 
         self.next(self.get_model_config)
 
@@ -127,8 +127,7 @@ class RecFlow(FlowSpec):
 
     # @batch decorator used to run step on AWS Batch
     # wrap batch in a switch to allow easy local testing
-    @enable_decorator(batch(gpu=1, memory=60000, cpu=8, image=os.getenv('BASE_IMAGE')),
-                      flag=os.getenv('EN_BATCH'))
+    @enable_decorator(batch(gpu=1, memory=60000, cpu=8, image=os.getenv('BASE_IMAGE')), flag=os.getenv('EN_BATCH'))
     # @ environment decorator used to pass environment variables to Batch instance
     @environment(vars={'WANDB_API_KEY': os.getenv('WANDB_API_KEY'),
                        'WANDB_ENTITY': os.getenv('WANDB_ENTITY'),
@@ -149,12 +148,12 @@ class RecFlow(FlowSpec):
         assert os.getenv('WANDB_ENTITY')
 
         # initialize wandb for tracking
-        # wandb.init(entity=os.getenv('WANDB_ENTITY'),
-        #            project="recommendation",
-        #            id=current.run_id,
-        #            config=self.config,
-        #            resume='allow',
-        #            reinit=True)
+        wandb.init(entity=os.getenv('WANDB_ENTITY'),
+                   project="recommendation-{}".format(self.model_choice),
+                   id=current.run_id,
+                   config=self.config,
+                   resume='allow',
+                   reinit=True)
 
         # choose either k-NN model or BERT model
         if self.model_choice == 'KNN':

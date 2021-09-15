@@ -14,7 +14,7 @@ from prodb.prodb import ProdB
 import tensorflow as tf
 from tensorflow.keras import layers, Model
 from tensorflow.keras.backend import batch_dot
-
+from wandb.keras import WandbCallback
 
 @dataclass
 class ProdBConfig:
@@ -76,7 +76,7 @@ def train_prodb_model(sessions: dict,
     prodb_model = ProdB(train_sessions*data_duplication, config)
     # call model.fit
     print('Training ProdB model...')
-    prodb_model()
+    prodb_model(callbacks=[WandbCallback()])
     # wrap MLM in an inference friendly model
     model = prodb_inference_model(prodb_model)
     # debug
