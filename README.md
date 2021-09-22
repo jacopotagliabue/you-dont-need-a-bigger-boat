@@ -1,5 +1,5 @@
 # You Don't Need a Bigger Boat
-An end-to-end (Metaflow-based) implementation of an intent prediction flow for kids who can't MLOps
+An end-to-end (Metaflow-based) implementation of an intent prediction (and session recommendation) flow for kids who can't MLOps
 good and [wanna learn to do other stuff good too](https://www.youtube.com/watch?v=NQ-8IuUkJJc).
 
 This is a WIP - check back often for updates.
@@ -28,29 +28,27 @@ waste their time managing cloud resources.
 *Note #1*: while the code is provided as an end-to-end solution, we may sacrifice some terseness for clarity / pedagogical reasons.
 
 *Note #2*: when we say the pipeline is an "end-to-end solution", we *mean* it - it goes from millions of raw events
-to a working endpoint that you can ping. As such, there are *many* moving pieces and it may take a while to understand how all of it works and how
-all the pieces fit together: we are trying to document everything (a blog post is forthcoming!), but this is not _per se_ a 10 minutes [tutorial on Metaflow](https://towardsdatascience.com/noops-machine-learning-3893a42e32a4?gi=5ebb644fa4ff); however, if you wonder how popular tools can be put to work in a real scenario, this repository provides a stack tried and tested at [unicorn](https://en.wikipedia.org/wiki/Unicorn_(finance)) scale.
+to a working endpoint that you can ping. As such, there are *many* moving pieces and it may take a while to understand how all the pieces fit together: this is not meant to be a recipe for building a small ML-powered feature, but a template for building an entire AI company (at least, the beginning of one) - as such, the learning curve is a bit steeper, but you will be rewarded with a ML stack tried and tested at [unicorn](https://en.wikipedia.org/wiki/Unicorn_(finance)) scale.
 
 ## Overview
-The repo shows how several (mostly open-source) tools can be effectively combined together to run data pipelines. The
-project current features:
+The repo shows how several (mostly open-source) tools can be effectively combined together to run data pipelines at scale with very small teams. The
+project now features:
 
 * [Metaflow](https://metaflow.org/) for ML DAGs (Alternatives: [Luigi](https://github.com/spotify/luigi) (?))
 * [Snowflake](https://www.snowflake.com/) as a data warehouse solution (Alternatives: [Redshift](https://aws.amazon.com/redshift/))
-* [Prefect](https://www.prefect.io/) as a general orchestrator (Alternatives: [Airflow](https://airflow.apache.org))
+* [Prefect](https://www.prefect.io/) as a general orchestrator (Alternatives: [Airflow](https://airflow.apache.org), or even Step Functions on AWS)
 * [dbt](https://www.getdbt.com) for data transformation (Alternatives: ?)
 * [Great Expectations](https://greatexpectations.io/) for data quality (Alternatives: [dbt-expectations plugin](https://github.com/calogica/dbt-expectations))
 * [Weights&Biases](https://wandb.ai/site) for experiment tracking (Alternatives: [Comet](https://www.comet.ml/))
-* [Gantry](https://gantry.io/) for ML monitoring (Alternatives: [Aporia](https://www.aporia.com/), [Evidently](https://evidentlyai.com/))
 * [Sagemaker](https://aws.amazon.com/sagemaker/) / [Lambda](https://aws.amazon.com/lambda/) for model serving (Alternatives: many)
 
-The following picture from our Recsys paper (forthcoming) gives a quick overview of such a pipeline:
+The following picture from [Recsys](https://dl.acm.org/doi/10.1145/3460231.3474604) gives a quick overview of a similar pipeline:
 
 ![Recsys flow](recsys_flow.jpg)
 
 We provide _two versions_ of the pipeline, depending on the sophistication of the setup:
 
-* a _Metaflow-only_ version, which runs from static data files (see below) to Sagemaker as a single Flow, and can be run
+* a _Metaflow-only_ version, which runs from static data files to Sagemaker as a single Flow, and can be run
 from a Metaflow-enabled laptop without much additional setup;
 * a _data warehouse_ version, which runs in a more realistic setup, reading data from Snowflake and using an external
 orchestrator to run the steps. In this setup, the downside is that a Snowflake and a Prefect Cloud accounts are required
@@ -67,28 +65,28 @@ when all the pieces of the puzzle are well understood.
 
 If you want to know more, you can give a look at the following material:
 
+* ["MLOps without much Ops"](https://towardsdatascience.com/tagged/mlops-without-much-ops), `TDS Blog Series`, September 2021;
 * ["ML Ops at Reasonable Scale"](https://www.youtube.com/watch?v=Ndxpo4PeEms) (video), `Stanford MLSys`, July 2021;
-* ["You Do Not Need a Bigger Boat: Recommendations at Reasonable Scale in a (Mostly) Serverless and Open Stack"](https://arxiv.org/abs/2107.07346) 
-(preprint), `RecSys 2021`.
+* ["You Do Not Need a Bigger Boat: Recommendations at Reasonable Scale in a (Mostly) Serverless and Open Stack"](https://dl.acm.org/doi/10.1145/3460231.3474604) [pre-print](https://arxiv.org/abs/2107.07346), `RecSys 2021`.
 
 *TBC*
 
 ## Status Update
 
-*July 2021*
+*September 2021*
 
-End-2-end flow working for `remote` and `local` projects; started standardizing Prefect agents with Docker and
-adding other services (monitoring, feature store etc.).
+*  Added to the `local` folder a new recommender flow as described [here](https://dl.acm.org/doi/10.1145/3460231.3474604).
+*  Started a [blog series](https://towardsdatascience.com/tagged/mlops-without-much-ops) explaining in detail the philosophy behind the approach.
+*  Started adding [DAG cards](https://github.com/jacopotagliabue/dag-card-is-the-new-model-card) to the official Metaflow codebase.
 
 TO-DOs:
 
-* dockerize the local flow;
-* write-up all of this as a blog post;
-* improve code / readability / docs, add potentially some more pics and some videos;
-* providing an orchestrator-free version, by using step functions to manage the steps;
-* finish feature store and gantry integration;
+* finish feature store and monitoring integration;
 * add Github Action flow;
-* continue improving the DAG card project.
+* standardize AWS permissions / users (as now most commands are still launched as admin users);
+* providing an orchestrator-free version, by using step functions to manage the steps;
+
+Want to join us and collaborate on the above? Please reach out!
 
 ## Setup
  
@@ -148,9 +146,7 @@ created by CloudFormation to set up metaflow on AWS:
 `metaflow configure aws --profile metaflow`
 
 Remember to use `METAFLOW_PROFILE=metaflow` to use this profile when running a flow. Once
-you completed the [setup](https://admin-docs.metaflow.org/metaflow-on-aws/deployment-guide/aws-cloudformation-deployment), you can run `flow_playground.py` to test the AWS setup is working
-as expected (in particular, GPU batch jobs can run correctly). To run the flow with the
-custom profile created, you should do:
+you completed the [setup](https://admin-docs.metaflow.org/metaflow-on-aws/deployment-guide/aws-cloudformation-deployment), you can run `flow_playground.py` to test the AWS setup is working as expected (in particular, GPU batch jobs can run correctly). To run the flow with the custom profile created, you should do:
 
 `METAFLOW_PROFILE=metaflow python flow_playground.py run`
 
