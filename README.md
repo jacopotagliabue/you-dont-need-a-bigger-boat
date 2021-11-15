@@ -196,7 +196,7 @@ Any serverless option there as well?
 If you find our principles, code or data useful, please cite our work:
 
 
-*Paper (forthcoming in RecSys2021)*
+*Paper (RecSys2021)*
 ```
 @inproceedings{10.1145/3460231.3474604,
 author = {Tagliabue, Jacopo},
