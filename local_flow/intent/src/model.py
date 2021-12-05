@@ -73,7 +73,7 @@ def train_lstm_model(x, y,
                                        verbose=1,
                                        restore_best_weights=True)
 
-    # Include callback for tracking
+    # Include callback for experiment tracking
     if tracker_callback is not None:
         callbacks = [es, tracker_callback]
     else:
