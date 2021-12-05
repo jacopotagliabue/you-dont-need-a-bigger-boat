@@ -52,11 +52,13 @@ class ExperimentTracker:
 
             # Initialize neptune
             # init API reference: https://docs.neptune.ai/api-reference/neptune#.init
-            self.neptune_run = neptune.init()
+            self.neptune_run = neptune.init(
+                name="cart-abandonment"
+            )
 
-            # Log Metaflow run ID and config
+            # Log Metaflow run ID and hyperparameters
             self.neptune_run["metaflow_run_id"] = self.current_run_id
-            self.neptune_run["hyper-parameters"] = self.config
+            self.neptune_run["parameters"] = self.config
 
             return NeptuneCallback(run=self.neptune_run)
         else:
