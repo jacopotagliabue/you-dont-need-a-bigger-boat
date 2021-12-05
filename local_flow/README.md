@@ -85,7 +85,7 @@ To utilise Neptune, you need to obtain your account [API Token](https://docs.nep
 Further information about Neptune environment variables can be found [here](https://docs.neptune.ai/api-reference/environment-variables).
 
 - `NEPTUNE_API_TOKEN`: The API token used for authentication.
-- `NEPTUNE_PROJECT`: The project in which new runs will be created. i.e `<YOUR_WORKSPACE/YOUR_PROJECT_NAME>`
+- `NEPTUNE_PROJECT`: The project in which new runs will be created.
 - `NEPTUNE_CUSTOM_RUN_ID`: A unique identifier that can be used to log metadata to a single run from multiple files or processes.
 
 ### Weights & Biases
