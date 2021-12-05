@@ -1,6 +1,6 @@
 """
 
-Train and LSTM model for intent prediction with using Weights & Biases for tracking
+Train and LSTM model for intent prediction with using Neptune.ai or Weights & Biases for tracking
 
 """
 
@@ -11,7 +11,6 @@ from tensorflow.keras.models import model_from_json
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.python.client import device_lib
 from sklearn.model_selection import train_test_split
-from wandb.keras import WandbCallback
 
 from prepare_dataset import session_indexed
 from utils import return_json_file_content
@@ -22,7 +21,8 @@ def train_lstm_model(x, y,
                      patience=10,
                      lstm_dim=48,
                      batch_size=128,
-                     lr=1e-3):
+                     lr=1e-3,
+                     tracker_callback=None):
     """
     Train an LSTM to predict purchase (1) or abandon (0)
 
@@ -33,6 +33,7 @@ def train_lstm_model(x, y,
     :param lstm_dim: lstm units
     :param batch_size: batch size
     :param lr: learning rate
+    :param tracker_callback: experiment tracking callback
     :return: trained model as json-serialized model and model weights
     """
 
@@ -72,8 +73,12 @@ def train_lstm_model(x, y,
                                        verbose=1,
                                        restore_best_weights=True)
 
-    # Include wandb callback for tracking
-    callbacks = [es, WandbCallback()]
+    # Include callback for tracking
+    if tracker_callback is not None:
+        callbacks = [es, tracker_callback]
+    else:
+        callbacks = [es]
+
     model.compile(optimizer=opt,
                   loss=loss,
                   metrics=['accuracy'])
