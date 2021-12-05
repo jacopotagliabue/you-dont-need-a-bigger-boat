@@ -54,8 +54,9 @@ class ExperimentTracker:
             # init API reference: https://docs.neptune.ai/api-reference/neptune#.init
             self.neptune_run = neptune.init()
 
-            # Log the metaflow run id
+            # Log Metaflow run ID and config
             self.neptune_run["metaflow_run_id"] = self.current_run_id
+            self.neptune_run["hyper-parameters"] = self.config
 
             return NeptuneCallback(run=self.neptune_run)
         else:
