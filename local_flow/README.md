@@ -82,7 +82,7 @@ It is advised to have these pre-packaged into the `BASE_IMAGE` docker image.
 ### Neptune.ai 
 To utilise Neptune, you need to obtain your account [API Token](https://docs.neptune.ai/getting-started/installation#authentication-neptune-api-token) and specify the [project](https://docs.neptune.ai/getting-started/installation#setting-the-project-name) you want to log Runs to. You can create an account [here](https://app.neptune.ai/register/).
 
-Further information about information about Neptune environment variables can be found [here](https://docs.neptune.ai/api-reference/environment-variables)
+Further information about information about Neptune environment variables can be found [here](https://docs.neptune.ai/api-reference/environment-variables).
 
 - `NEPTUNE_API_TOKEN`: The API token used for authentication.
 - `NEPTUNE_PROJECT`: The project in which new runs will be created. i.e `<YOUR_WORKSPACE/YOUR_PROJECT_NAME>`
