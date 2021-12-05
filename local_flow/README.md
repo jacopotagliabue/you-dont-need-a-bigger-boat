@@ -85,6 +85,7 @@ Further information about what you can log and display with Neptune can be found
 
 - `NEPTUNE_API_TOKEN`: The API token used for authentication.
 - `NEPTUNE_PROJECT`: The project in which new runs will be created. i.e `<YOUR_WORKSPACE/YOUR_PROJECT_NAME>`
+- `NEPTUNE_CUSTOM_RUN_ID`: A unique identifier that can be used to log metadata to a single run from multiple files or processes.
 
 ### Weights & Biases
 
