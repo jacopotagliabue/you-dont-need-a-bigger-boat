@@ -1,5 +1,9 @@
 import os
 import json
+import wandb
+from wandb.keras import WandbCallback
+import neptune.new as neptune
+from neptune.new.integrations.tensorflow_keras import NeptuneCallback
 
 
 def get_filename(path):
@@ -19,13 +23,14 @@ def return_json_file_content(file_name: str):
     return data
 
 class ExperimentTracker:
-    def __init__(self, tracker_name, current_run_id, config):
-        self.tracker_name = tracker_name
+    def __init__(self, name, current_run_id, config, model_choice):
+        self.name = name
         self.current_run_id = current_run_id
         self.config = config
+        self.model_choice = model_choice
 
     def get_tracker_callback(self):
-        if self.tracker_name == 'wandb':
+        if self.name == 'wandb':
 
             # Check if environment variables are empty
             assert os.getenv('WANDB_API_KEY')
@@ -34,14 +39,14 @@ class ExperimentTracker:
             # Initialize wandb
             # init API reference: https://docs.wandb.ai/ref/python/init
             self.wandb_run = wandb.init(entity = os.getenv('WANDB_ENTITY'),
-                   project="cart-abandonment",
+                   project="recommendation-{}".format(self.model_choice),
                    id=self.current_run_id,
                    config=self.config,
                    resume='allow',
                    reinit=True)
                 
             return WandbCallback()
-        elif self.tracker_name == 'neptune':
+        elif self.name == 'neptune':
 
             # Check if environment variables are empty
             assert os.getenv('NEPTUNE_PROJECT')
@@ -49,10 +54,13 @@ class ExperimentTracker:
 
             # Initialize neptune
             # init API reference: https://docs.neptune.ai/api-reference/neptune#.init
-            self.neptune_run = neptune.init()
+            self.neptune_run = neptune.init(
+                name="recommendation-{}".format(self.model_choice)
+            )
 
             # Log the metaflow run id
             self.neptune_run["metaflow_run_id"] = self.current_run_id
+            self.neptune_run["hyper-parameters"] = self.config
 
             return NeptuneCallback(run=self.neptune_run)
         else:
