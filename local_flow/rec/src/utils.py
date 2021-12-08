@@ -23,11 +23,12 @@ def return_json_file_content(file_name: str):
     return data
 
 class ExperimentTracker:
-    def __init__(self, name, current_run_id, config, model_choice):
+    def __init__(self, name, current_run_id, config, model_choice, s3_path):
         self.name = name
         self.current_run_id = current_run_id
         self.config = config
         self.model_choice = model_choice
+        self.s3_path = s3_path
 
     def get_tracker_callback(self):
         if self.name == 'wandb':
@@ -58,9 +59,13 @@ class ExperimentTracker:
                 name="recommendation-{}".format(self.model_choice)
             )
 
-            # Log the metaflow run id
+            # Log the Metaflow run ID and hyperparameters
             self.neptune_run["metaflow_run_id"] = self.current_run_id
             self.neptune_run["hyper-parameters"] = self.config
+
+            # Log data version
+            self.neptune_run["artifacts/dataset"].track_files(self.s3_path)
+            
 
             return NeptuneCallback(run=self.neptune_run)
         else:

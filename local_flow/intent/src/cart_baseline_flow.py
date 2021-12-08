@@ -146,7 +146,8 @@ class CartFlow(FlowSpec):
         tracker = ExperimentTracker(
             name='neptune', # or 'wandb'
             current_run_id=current.run_id,
-            config=self.config
+            config=self.config,
+            s3_path=os.getenv('PARQUET_S3_PATH')
         )
 
         self.model, self.model_weights = train_lstm_model(x=self.dataset['X'],
