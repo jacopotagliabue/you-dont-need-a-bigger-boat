@@ -160,7 +160,7 @@ you completed the [setup](https://admin-docs.metaflow.org/metaflow-on-aws/deploy
 2. Environment Variables in AWS Batch
 	- The `@environment` decorator is used in conjunction with `@batch` to pass environment variables to
 		AWS Batch, which will not directly have access to env variables on your local machine
-	- In the `local` example, we use `@environemnt` to pass the Neptune.ai or Weights & Biases API Key, Project name (amongst other things)
+	- In the `local` example, we use `@environemnt` to pass the Neptune.ai or Weights & Biases API Key (amongst other things)
 3. Resuming Flows
 	- Resuming flows is useful during development to avoid re-running compute/time intensive steps
 		such as data preparation
