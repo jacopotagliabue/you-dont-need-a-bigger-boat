@@ -67,8 +67,7 @@ class ExperimentTracker:
             raise ValueError("Invalid tracker name supported values are 'wandb' and 'neptune'")
 
     def stop_tracker(self):
-        if self.tracker_name == 'wandb':
-            self.wandb_run.save()
+        if self.name == 'wandb':
             self.wandb_run.finish()
-        elif self.tracker_name == 'neptune':
+        elif self.name == 'neptune':
             self.neptune_run.stop()

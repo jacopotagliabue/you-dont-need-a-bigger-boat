@@ -131,7 +131,7 @@ class CartFlow(FlowSpec):
                        'BASE_IMAGE': os.getenv('BASE_IMAGE'),
                        'EN_BATCH': os.getenv('EN_BATCH')})
     # un-comment if provided image does not contain required packages
-    # @pip(libraries={'wandb': '0.10.30', "neptune-client": "0.13.3", "neptune-tensorflow": "0.9.9"})
+    # @pip(libraries={'wandb': '0.10.30', "neptune-client": "0.13.3", "neptune-tensorflow-keras": "0.9.9"})
     @step
     def train_model(self):
         """
@@ -144,7 +144,7 @@ class CartFlow(FlowSpec):
 
         # initialize neptune or wandb for tracking
         tracker = ExperimentTracker(
-            tracker_name='neptune', # or 'wandb'
+            name='neptune', # or 'wandb'
             current_run_id=current.run_id,
             config=self.config
         )

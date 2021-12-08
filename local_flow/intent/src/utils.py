@@ -23,12 +23,12 @@ def return_json_file_content(file_name: str):
 
 class ExperimentTracker:
     def __init__(self, tracker_name, current_run_id, config):
-        self.tracker_name = tracker_name
+        self.name = tracker_name
         self.current_run_id = current_run_id
         self.config = config
 
     def get_tracker_callback(self):
-        if self.tracker_name == 'wandb':
+        if self.name == 'wandb':
 
             # Check if environment variables are empty
             assert os.getenv('WANDB_API_KEY')
@@ -44,7 +44,7 @@ class ExperimentTracker:
                    reinit=True)
                 
             return WandbCallback()
-        elif self.tracker_name == 'neptune':
+        elif self.name == 'neptune':
 
             # Check if environment variables are empty
             assert os.getenv('NEPTUNE_PROJECT')
@@ -65,8 +65,7 @@ class ExperimentTracker:
             raise ValueError("Invalid tracker name supported values are 'wandb' and 'neptune'")
 
     def stop_tracker(self):
-        if self.tracker_name == 'wandb':
-            self.wandb_run.save()
+        if self.name == 'wandb':
             self.wandb_run.finish()
-        elif self.tracker_name == 'neptune':
+        elif self.name == 'neptune':
             self.neptune_run.stop()
