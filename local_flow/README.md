@@ -16,7 +16,7 @@ As seen in the above diagram, there are four main steps in the flow:
 
 1. Data Transformation: The dataset is read from S3 and transformed/wrangled using a GPU accelerated library [RAPIDS](https://rapids.ai/).
 2. Data Validation: [Great Expectations](https://greatexpectations.io/) is used to perform data validation on the transformed data.
-3. Model Training: Keras (or other ML Libraries) is used to train the model and experiment tracking is done via Weights & Biases.
+3. Model Training: Keras (or other ML Libraries) is used to train the model and experiment tracking is done via Neptune.ai or Weights & Biases.
 4. Model Serving: The trained model is deployed on SageMaker and is exposed via a public Lambda endpoint.
 
 [comment]: <> (   Gantry is used here for model monitoring.)
