@@ -137,7 +137,7 @@ class RecFlow(FlowSpec):
                        'BASE_IMAGE': os.getenv('BASE_IMAGE'),
                        'EN_BATCH': os.getenv('EN_BATCH')})
     # un-comment if provided image does not contain required packages
-    # @pip(libraries={'wandb': '0.10.30', 'gensim': '4.0.1', "neptune-client": "0.13.3", "neptune-tensorflow": "0.9.9"})
+    # @pip(libraries={'wandb': '0.10.30', 'gensim': '4.0.1', "neptune-client": "0.13.3", "neptune-tensorflow-keras": "0.9.9"})
     @step
     def train_model(self):
         """
