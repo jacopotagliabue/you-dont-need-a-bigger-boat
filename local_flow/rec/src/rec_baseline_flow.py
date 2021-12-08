@@ -143,7 +143,6 @@ class RecFlow(FlowSpec):
         """
         Train a Prod2Vec or ProdB model.
         """
-        import os
         from utils import ExperimentTracker
         from model import train_prod2vec_model, train_prodb_model
 
