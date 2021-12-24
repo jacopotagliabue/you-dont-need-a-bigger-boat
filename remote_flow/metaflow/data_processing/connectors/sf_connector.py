@@ -74,6 +74,10 @@ class SFSelfClosingNamespaceConnection:
         self._cs.executemany(command, seq_of_parameters)
 
     def upload_file(self, absolute_file_path, table):
+        self._cs.execute(f"CREATE OR REPLACE FILE FORMAT ESCAPED_DQ TYPE = CSV "
+                         "RECORD_DELIMITER = '\\n' "
+                         "FIELD_OPTIONALLY_ENCLOSED_BY = '\\\"' "
+                         "COMMENT = 'for loading objects from csv'")
         self._cs.execute(f"PUT file://{absolute_file_path} @%{table}")
         self._cs.execute(f"COPY INTO {table} "
                          "FILE_FORMAT = ESCAPED_DQ")
