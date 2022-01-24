@@ -144,7 +144,6 @@ class CartFlow(FlowSpec):
 
         # initialize neptune or wandb for tracking
         tracker = ExperimentTracker(
-            name='neptune', # or 'wandb'
             current_run_id=current.run_id,
             config=self.config,
             s3_path=os.getenv('PARQUET_S3_PATH')
