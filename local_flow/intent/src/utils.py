@@ -34,7 +34,10 @@ class ExperimentTracker:
 
             # Check if environment variables are empty
             assert os.getenv('WANDB_ENTITY')
-            assert os.getenv('WANDB_API_KEY')
+            assert os.getenv('WANDB_API_KEY'), '''
+            WANDB_API_KEY is not set. Please set it in your environment.
+            Docs: https://docs.wandb.ai/guides/track/advanced/environment-variables#multiple-wandb-users-on-shared-machines
+            '''
             
             # Initialize wandb
             # init API reference: https://docs.wandb.ai/ref/python/init
@@ -50,7 +53,10 @@ class ExperimentTracker:
 
             # Check if environment variables are empty
             assert os.getenv('NEPTUNE_PROJECT')
-            assert os.getenv('NEPTUNE_API_TOKEN')
+            assert os.getenv('NEPTUNE_API_TOKEN'), '''
+            NEPTUNE_API_TOKEN is not set. Please set it in your environment.
+            Docs: https://docs.neptune.ai/api-reference/environment-variables#neptune_api_token
+            '''
 
             # Initialize neptune
             # init API reference: https://docs.neptune.ai/api-reference/neptune#.init
