@@ -23,6 +23,34 @@ def return_json_file_content(file_name: str):
     return data
 
 class ExperimentTracker:
+    """
+    Intialize experiment tracker 
+    
+    Attributes:
+        current_run_id (`str`): current run id
+        config (`dict`): model hyperparameters
+        model_choice (`str`): model choice (e.g. 'KNN')
+        s3_path (`str`): s3 dataset path
+        name (`str`): `'wandb'` or `'neptune'` or `None`.
+        When you set WANDB_ENTITY environment variable it will be `'wandb'` 
+        When you set NEPTUNE_PROJECT environment variable it will be `'neptune'`
+        When you set None of the above it will be `None` and will raise ValueError exception.
+        
+    
+    Example:
+        1. Export the environment variables in .env file using the following command:
+        - For Neptune:
+            >>> export NEPTUNE_PROJECT=<your-project-name> NEPTUNE_API_TOKEN=<your-api-token> 
+        - For Wandb:
+            >>> export WANDB_ENTITY=<your-wandb-entity> WANDB_API_KEY=<your-wandb-api-key>
+       
+       2. Code example: 
+        >>> exp_tracker = ExperimentTracker(current_run_id, config, model_choice, s3_path)
+        >>> tracker_callback = exp_tracker.get_tracker_callback()
+        >>> ...
+        >>> model.fit(...,callbacks=[tracker_callback])
+
+    """
     def __init__(self, current_run_id, config, model_choice, s3_path):
         self.current_run_id = current_run_id
         self.config = config
@@ -33,6 +61,15 @@ class ExperimentTracker:
 
 
     def get_tracker_callback(self):
+        """
+        Get experiment tracker callback
+
+        Raises:
+            ValueError: If no experiement tracker enviroment variable is detected for either wandb or neptune in .env file
+
+        Returns:
+            Callback: Neptune or Wandb Callback().
+        """
         if self.name == 'wandb':
 
             # Check if environment variables are empty
@@ -90,6 +127,16 @@ class ExperimentTracker:
             )
 
     def stop_tracker(self):
+        """
+        Stop experiment tracker (Wandb or Neptune) connection once you are done tracking an experiment.
+
+        Example:
+            >>> tracker = ExperimentTracker(current_run_id, config, model_choice, s3_path)
+            >>> tracker_callback = tracker.get_tracker_callback()
+            >>> ...
+            >>> model.fit(...,callbacks=[tracker_callback])
+            >>> tracker.stop_tracker()
+        """
         if self.name == 'wandb':
             self.wandb_run.finish()
         elif self.name == 'neptune':
