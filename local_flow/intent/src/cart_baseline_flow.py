@@ -131,7 +131,7 @@ class CartFlow(FlowSpec):
                        'BASE_IMAGE': os.getenv('BASE_IMAGE'),
                        'EN_BATCH': os.getenv('EN_BATCH')})
     # Comment out @pip(..) if provided image contains the required packages
-    @pip(libraries={'wandb': '0.10.30', "neptune-client": "0.13.3", "neptune-tensorflow-keras": "0.9.9"})
+    @pip(libraries={'wandb': '0.10.30', 'neptune-client': '', 'neptune-tensorflow-keras':''})
     @step
     def train_model(self):
         """
