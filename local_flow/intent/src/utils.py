@@ -26,14 +26,14 @@ class ExperimentTracker:
     Intialize experiment tracker 
     
     Attributes:
-        current_run_id (`str`): current run id
-        config (`dict`): model hyperparameters
-        s3_path (`str`): s3 dataset path
-        name(`str`): `'wandb'` or `'neptune'` or `None`.
-        When you set WANDB_ENTITY environment variable it will be `'wandb'` 
-        When you set NEPTUNE_PROJECT environment variable it will be `'neptune'`
-        When you set None of the above it will be `None` and will raise ValueError exception.
-    
+        name (`str`): `'neptune'` or `'wandb'`.
+         - `'neptune'` will track the experiment on `Neptune.ai <https://neptune.ai/`.
+         - `'wandb'` will track the experiment on `Wandb.ai <https://wandb.ai/>.
+        current_run_id (`str`): current run id.
+        config (`dict`): model hyperparameters.
+        s3_path (`str`): s3 dataset path.
+
+        
     Example:
         Export the environment variables in .env file using the following command:
         For Neptune:
@@ -42,25 +42,31 @@ class ExperimentTracker:
             >>> export WANDB_ENTITY=<your-wandb-entity> WANDB_API_KEY=<your-wandb-api-key>
        
        Python script: 
-        >>> exp_tracker = ExperimentTracker(current_run_id, config, model_choice, s3_path)
-        >>> tracker_callback = exp_tracker.get_tracker_callback()
+        >>> tracker_name = 'neptune' if 'NEPTUNE_PROJECT' in os.environ \
+                    else ('wandb' if 'WANDB_ENTITY' in os.environ else None)
+        >>> tracker = ExperimentTracker(
+            name = tracker_name,
+            current_run_id = current_run_id, 
+            config = config,  
+            s3_path = 's3://<your-bucket-name>/<your-dataset-name>')
+        >>> tracker_callback = tracker.get_tracker_callback()
         >>> ...
         >>> model.fit(...,callbacks=[tracker_callback])
 
     """
-    def __init__(self, current_run_id, config, s3_path):
+    def __init__(self, name, current_run_id, config, s3_path):
+        self.name = name
         self.current_run_id = current_run_id
         self.config = config
         self.s3_path = s3_path
-        self.name = 'wandb' if 'WANDB_ENTITY' in os.environ \
-                    else ('neptune' if 'NEPTUNE_PROJECT' in os.environ else None)
+        
 
     def get_tracker_callback(self):
         """
         Get experiment tracker callback
 
         Raises:
-            ValueError: If no experiement tracker enviroment variable is detected for either wandb or neptune in .env file
+            ValueError: If no experiement tracker enviroment variable is detected for either neptune or wandb in .env file
 
         Returns:
             Callback: Neptune or Wandb Callback().

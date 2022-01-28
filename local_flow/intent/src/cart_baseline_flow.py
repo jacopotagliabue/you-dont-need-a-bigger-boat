@@ -140,10 +140,14 @@ class CartFlow(FlowSpec):
         
         from model import train_lstm_model
         from utils import ExperimentTracker
+        
+        # Get tracker name by detecting which tracker's environment variables are set
+        tracker_name = 'neptune' if 'NEPTUNE_PROJECT' in os.environ \
+                    else ('wandb' if 'WANDB_ENTITY' in os.environ else None)
 
-
-        # initialize neptune or wandb for tracking
+        # Initialize neptune or wandb for tracking
         tracker = ExperimentTracker(
+            name=tracker_name,
             current_run_id=current.run_id,
             config=self.config,
             s3_path=os.getenv('PARQUET_S3_PATH')

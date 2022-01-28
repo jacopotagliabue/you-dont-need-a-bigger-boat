@@ -146,8 +146,13 @@ class RecFlow(FlowSpec):
         from utils import ExperimentTracker
         from model import train_prod2vec_model, train_prodb_model
 
+        # Get tracker name by detecting which tracker's environment variables are set
+        tracker_name = 'neptune' if 'NEPTUNE_PROJECT' in os.environ \
+                    else ('wandb' if 'WANDB_ENTITY' in os.environ else None)
+
         # Initialize neptune or wandb for tracking
         tracker = ExperimentTracker(
+            name=tracker_name,
             current_run_id=current.run_id,
             config=self.config,
             model_choice=self.model_choice,
