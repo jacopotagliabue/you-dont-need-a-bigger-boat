@@ -123,30 +123,35 @@ class CartFlow(FlowSpec):
     @enable_decorator(batch(gpu=1, cpu=8, image=os.getenv('BASE_IMAGE')),
                       flag=os.getenv('EN_BATCH'))
     # @ environment decorator used to pass environment variables to Batch instance
-    @environment(vars={'WANDB_API_KEY': os.getenv('WANDB_API_KEY'),
+    @environment(vars={'NEPTUNE_PROJECT': os.getenv('NEPTUNE_PROJECT'),
+                       'NEPTUNE_API_TOKEN': os.getenv('NEPTUNE_API_TOKEN'),
+                       'NEPTUNE_CUSTOM_RUN_ID': os.getenv('NEPTUNE_CUSTOM_RUN_ID'),
+                       'WANDB_API_KEY': os.getenv('WANDB_API_KEY'),
                        'WANDB_ENTITY': os.getenv('WANDB_ENTITY'),
                        'BASE_IMAGE': os.getenv('BASE_IMAGE'),
                        'EN_BATCH': os.getenv('EN_BATCH')})
-    # @ custom pip decorator for pip installation on Batch instance
-    @pip(libraries={'wandb': '0.10.30'})
+    # Comment out @pip(..) if provided image contains the required packages
+    @pip(libraries={'wandb': '0.10.30', 'neptune-client': '', 'neptune-tensorflow-keras':''})
     @step
     def train_model(self):
         """
         Train an intention prediction model on GPU.
         """
-        import wandb
+        
         from model import train_lstm_model
+        from utils import ExperimentTracker
+        
+        # Get tracker name by detecting which tracker's environment variables are set
+        tracker_name = 'neptune' if 'NEPTUNE_PROJECT' in os.environ \
+                    else ('wandb' if 'WANDB_ENTITY' in os.environ else None)
 
-        assert os.getenv('WANDB_API_KEY')
-        assert os.getenv('WANDB_ENTITY')
-
-        # initialize wandb for tracking
-        wandb.init(entity=os.getenv('WANDB_ENTITY'),
-                   project="cart-abandonment",
-                   id=current.run_id,
-                   config=self.config,
-                   resume='allow',
-                   reinit=True)
+        # Initialize neptune or wandb for tracking
+        tracker = ExperimentTracker(
+            name=tracker_name,
+            current_run_id=current.run_id,
+            config=self.config,
+            s3_path=os.getenv('PARQUET_S3_PATH')
+        )
 
         self.model, self.model_weights = train_lstm_model(x=self.dataset['X'],
                                                           y=self.dataset['y'],
@@ -154,7 +159,8 @@ class CartFlow(FlowSpec):
                                                           patience=self.config['PATIENCE'],
                                                           lstm_dim=self.config['LSTM_DIMS'],
                                                           batch_size=self.config['BATCH_SIZE'],
-                                                          lr=self.config['LEARNING_RATE'])
+                                                          lr=self.config['LEARNING_RATE'],
+                                                          tracker_callback=tracker.get_tracker_callback())
         self.next(self.deploy)
 
     @step

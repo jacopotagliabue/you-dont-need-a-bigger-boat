@@ -39,6 +39,7 @@ project now features:
 * [Prefect](https://www.prefect.io/) as a general orchestrator (Alternatives: [Airflow](https://airflow.apache.org), or even Step Functions on AWS)
 * [dbt](https://www.getdbt.com) for data transformation (Alternatives: ?)
 * [Great Expectations](https://greatexpectations.io/) for data quality (Alternatives: [dbt-expectations plugin](https://github.com/calogica/dbt-expectations))
+* [Neptune.ai](https://neptune.ai/) for experiement tracking, data and model versioning(Alternatives: [Weights&Biases](https://wandb.ai/site), [Comet](https://www.comet.ml/), [MLflow](https://www.mlflow.org/))
 * [Weights&Biases](https://wandb.ai/site) for experiment tracking (Alternatives: [Comet](https://www.comet.ml/))
 * [Sagemaker](https://aws.amazon.com/sagemaker/) / [Lambda](https://aws.amazon.com/lambda/) for model serving (Alternatives: many)
 
@@ -159,7 +160,7 @@ you completed the [setup](https://admin-docs.metaflow.org/metaflow-on-aws/deploy
 2. Environment Variables in AWS Batch
 	- The `@environment` decorator is used in conjunction with `@batch` to pass environment variables to
 		AWS Batch, which will not directly have access to env variables on your local machine
-	- In the `local` example, we use `@environemnt` to pass the Weights & Biases API Key (amongst other things)
+	- In the `local` example, we use `@environemnt` to pass the Neptune.ai or Weights & Biases API Key (amongst other things)
 3. Resuming Flows
 	- Resuming flows is useful during development to avoid re-running compute/time intensive steps
 		such as data preparation

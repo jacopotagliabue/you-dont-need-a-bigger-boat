@@ -1,6 +1,6 @@
 """
 
-Train and LSTM model for intent prediction with using Weights & Biases for tracking
+Train and LSTM model for intent prediction with using Neptune.ai or Weights & Biases for tracking
 
 """
 import wandb
@@ -14,7 +14,7 @@ from prodb.prodb import ProdB
 import tensorflow as tf
 from tensorflow.keras import layers, Model
 from tensorflow.keras.backend import batch_dot
-from wandb.keras import WandbCallback
+
 
 @dataclass
 class ProdBConfig:
@@ -97,7 +97,8 @@ def train_prodb_model(sessions: dict,
                       ff_dim: int = 64,
                       num_layers: int = 4,
                       epochs: int = 5,
-                      data_duplication: int = 1):
+                      data_duplication: int = 1, 
+                      tracker_callback=None):
     # ProdB configuration class
     config = ProdBConfig(MAX_LEN=max_len,
                          BATCH_SIZE=batch_size,
@@ -118,7 +119,10 @@ def train_prodb_model(sessions: dict,
     prodb_model = ProdB(train_sessions*data_duplication, config)
     # call model.fit
     print('Training ProdB model...')
-    prodb_model(callbacks=[WandbCallback()])
+    # Include callback for experiment tracking
+    if tracker_callback is not None:
+        prodb_model(callbacks=[tracker_callback])
+    
     # wrap MLM in an inference friendly model
     model = prodb_inference_model(prodb_model)
     # debug
@@ -127,8 +131,11 @@ def train_prodb_model(sessions: dict,
                                   token2id=prodb_model.token2id,
                                   id2token=prodb_model.id2token,
                                   sessions=sessions['valid'])
-
-    wandb.log({"HR@10": validation_hr})
+    if tracker_callback is not None:
+        if isinstance(tracker_callback, wandb.keras.WandbCallback):
+            wandb.log({'HR@10': validation_hr})
+        else:
+            tracker_callback._metric_logger["HR@10"] = validation_hr
 
     # return MLM weights and token mappings
     return {
@@ -147,7 +154,8 @@ def train_prod2vec_model(sessions: dict,
                          size: int = 48,
                          window: int = 5,
                          iterations: int = 15,
-                         ns_exponent: float = 0.75):
+                         ns_exponent: float = 0.75,
+                         tracker=None):
     """
     Train CBOW to get product embeddings. We start with sensible defaults from the literature - please
     check https://arxiv.org/abs/2007.14906 for practical tips on how to optimize prod2vec.
@@ -187,7 +195,12 @@ def train_prod2vec_model(sessions: dict,
                                   token2id=token2id,
                                   id2token=id2token,
                                   sessions=sessions['valid'])
-    wandb.log({"HR@10": validation_hr})
+    if tracker is not None:                             
+        if isinstance(tracker, wandb.keras.WandbCallback):
+            wandb.log({'HR@10': validation_hr})
+        else:
+            tracker._metric_logger["HR@10"] = validation_hr
+    
 
     return {
                 'model': knn_model.to_json(),

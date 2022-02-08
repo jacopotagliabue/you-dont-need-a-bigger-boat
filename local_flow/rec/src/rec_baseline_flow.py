@@ -129,32 +129,36 @@ class RecFlow(FlowSpec):
     # wrap batch in a switch to allow easy local testing
     @enable_decorator(batch(gpu=1, memory=60000, cpu=8, image=os.getenv('BASE_IMAGE')), flag=os.getenv('EN_BATCH'))
     # @ environment decorator used to pass environment variables to Batch instance
-    @environment(vars={'WANDB_API_KEY': os.getenv('WANDB_API_KEY'),
+    @environment(vars={'NEPTUNE_PROJECT': os.getenv('NEPTUNE_PROJECT'),
+                       'NEPTUNE_API_TOKEN': os.getenv('NEPTUNE_API_TOKEN'),
+                       'NEPTUNE_CUSTOM_RUN_ID': os.getenv('NEPTUNE_CUSTOM_RUN_ID'),
+                       'WANDB_API_KEY': os.getenv('WANDB_API_KEY'),
                        'WANDB_ENTITY': os.getenv('WANDB_ENTITY'),
                        'BASE_IMAGE': os.getenv('BASE_IMAGE'),
                        'EN_BATCH': os.getenv('EN_BATCH')})
-    # un-comment if provided image does not contain required packages
-    # @pip(libraries={'wandb': '0.10.30', 'gensim': '4.0.1'})
+    # Comment out @pip(..) if provided image contains the required packages
+    @pip(libraries={'wandb': '0.10.30', 'gensim': '4.0.1', 'neptune-client': '', 'neptune-tensorflow-keras':''})
     @step
     def train_model(self):
         """
         Train a Prod2Vec or ProdB model.
         """
-        import os
-        import wandb
+        from utils import ExperimentTracker
         from model import train_prod2vec_model, train_prodb_model
 
-        assert os.getenv('WANDB_API_KEY')
-        assert os.getenv('WANDB_ENTITY')
+        # Get tracker name by detecting which tracker's environment variables are set
+        tracker_name = 'neptune' if 'NEPTUNE_PROJECT' in os.environ \
+                    else ('wandb' if 'WANDB_ENTITY' in os.environ else None)
 
-        # initialize wandb for tracking
-        wandb.init(entity=os.getenv('WANDB_ENTITY'),
-                   project="recommendation-{}".format(self.model_choice),
-                   id=current.run_id,
-                   config=self.config,
-                   resume='allow',
-                   reinit=True)
-
+        # Initialize neptune or wandb for tracking
+        tracker = ExperimentTracker(
+            name=tracker_name,
+            current_run_id=current.run_id,
+            config=self.config,
+            model_choice=self.model_choice,
+            s3_path=os.getenv('PARQUET_S3_PATH')
+        )
+        
         # choose either k-NN model or BERT model
         if self.model_choice == 'KNN':
             self.model, self.token_mapping = train_prod2vec_model(sessions=self.dataset,
@@ -162,7 +166,8 @@ class RecFlow(FlowSpec):
                                                                   size=self.config['SIZE'],
                                                                   window=self.config['WINDOW'],
                                                                   iterations=self.config['ITERATIONS'],
-                                                                  ns_exponent=self.config['NS_EXPONENT'])
+                                                                  ns_exponent=self.config['NS_EXPONENT'],
+                                                                  tracker=tracker.get_tracker_callback())
         else:
             self.model, self.token_mapping = train_prodb_model(sessions=self.dataset,
                                                                max_len=self.config['MAX_LEN'],
@@ -174,7 +179,8 @@ class RecFlow(FlowSpec):
                                                                ff_dim=self.config['FF_DIM'],
                                                                num_layers=self.config['NUM_LAYERS'],
                                                                epochs=self.config['EPOCHS'],
-                                                               data_duplication=self.config['DATA_DUPLICATION'])
+                                                               data_duplication=self.config['DATA_DUPLICATION'],
+                                                               tracker_callback=tracker.get_tracker_callback())
 
         self.next(self.deploy)
 

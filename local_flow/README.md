@@ -16,7 +16,7 @@ As seen in the above diagram, there are four main steps in the flow:
 
 1. Data Transformation: The dataset is read from S3 and transformed/wrangled using a GPU accelerated library [RAPIDS](https://rapids.ai/).
 2. Data Validation: [Great Expectations](https://greatexpectations.io/) is used to perform data validation on the transformed data.
-3. Model Training: Keras (or other ML Libraries) is used to train the model and experiment tracking is done via Weights & Biases.
+3. Model Training: Keras (or other ML Libraries) is used to train the model and experiment tracking is done via Neptune.ai or Weights & Biases.
 4. Model Serving: The trained model is deployed on SageMaker and is exposed via a public Lambda endpoint.
 
 [comment]: <> (   Gantry is used here for model monitoring.)
@@ -78,6 +78,15 @@ for images made available by AWS.
 
 - For `rec`, model training requires either [prodb](https://github.com/vinid/prodb) or [gensim](https://radimrehurek.com/gensim/).
 It is advised to have these pre-packaged into the `BASE_IMAGE` docker image.
+
+### Neptune.ai 
+To utilise Neptune, you need to obtain your account [API Token](https://docs.neptune.ai/getting-started/installation#authentication-neptune-api-token) and specify the [project](https://docs.neptune.ai/getting-started/installation#setting-the-project-name) you want to log Runs to. You can create an account [here](https://app.neptune.ai/register/).
+
+Further information about Neptune environment variables can be found [here](https://docs.neptune.ai/api-reference/environment-variables).
+
+- `NEPTUNE_API_TOKEN`: The API token used for authentication.
+- `NEPTUNE_PROJECT`: The project in which new runs will be created.
+- `NEPTUNE_CUSTOM_RUN_ID`: A unique identifier that can be used to log metadata to a single run from multiple files or processes.
 
 ### Weights & Biases
 
