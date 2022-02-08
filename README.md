@@ -34,16 +34,15 @@ to a working endpoint that you can ping. As such, there are *many* moving pieces
 The repo shows how several (mostly open-source) tools can be effectively combined together to run data pipelines at scale with very small teams. The
 project now features:
 
-* [Metaflow](https://metaflow.org/) for ML DAGs (Alternatives: [Luigi](https://github.com/spotify/luigi) (?))
+* [Metaflow](https://metaflow.org/) for ML DAGs
 * [Snowflake](https://www.snowflake.com/) as a data warehouse solution (Alternatives: [Redshift](https://aws.amazon.com/redshift/))
 * [Prefect](https://www.prefect.io/) as a general orchestrator (Alternatives: [Airflow](https://airflow.apache.org), or even Step Functions on AWS)
 * [dbt](https://www.getdbt.com) for data transformation (Alternatives: ?)
 * [Great Expectations](https://greatexpectations.io/) for data quality (Alternatives: [dbt-expectations plugin](https://github.com/calogica/dbt-expectations))
-* [Neptune.ai](https://neptune.ai/) for experiement tracking, data and model versioning(Alternatives: [Weights&Biases](https://wandb.ai/site), [Comet](https://www.comet.ml/), [MLflow](https://www.mlflow.org/))
-* [Weights&Biases](https://wandb.ai/site) for experiment tracking (Alternatives: [Comet](https://www.comet.ml/))
+* [Weights&Biases](https://wandb.ai/site) for experiment tracking (Alternatives: [Comet](https://www.comet.ml/), [Neptune](https://neptune.ai/))
 * [Sagemaker](https://aws.amazon.com/sagemaker/) / [Lambda](https://aws.amazon.com/lambda/) for model serving (Alternatives: many)
 
-The following picture from [Recsys](https://dl.acm.org/doi/10.1145/3460231.3474604) gives a quick overview of a similar pipeline:
+The following picture from [Recsys](https://dl.acm.org/doi/10.1145/3460231.3474604) gives a quick overview of a _similar_ pipeline:
 
 ![Recsys flow](recsys_flow.jpg)
 
@@ -74,11 +73,11 @@ If you want to know more, you can give a look at the following material:
 
 ## Status Update
 
-*September 2021*
+*January 2022*
 
-*  Added to the `local` folder a new recommender flow as described [here](https://dl.acm.org/doi/10.1145/3460231.3474604).
-*  Started a [blog series](https://towardsdatascience.com/tagged/mlops-without-much-ops) explaining in detail the philosophy behind the approach.
-*  Started adding [DAG cards](https://github.com/jacopotagliabue/dag-card-is-the-new-model-card) to the official Metaflow codebase.
+*  The Neptune team added a small [abstraction](https://github.com/jacopotagliabue/you-dont-need-a-bigger-boat/blob/main/local_flow/rec/src/utils.py) to deal with multiple experiment trackers, so the recs local flow now is even more flexible!
+*  Our [DAG cards](https://arxiv.org/abs/2110.13601) are now officially part of the [Metaflow codebase](https://outerbounds.com/blog/integrating-pythonic-visual-reports-into-ml-pipelines/).
+*  Our fourth episode in the MLOps [blog series](https://towardsdatascience.com/tagged/mlops-without-much-ops) comes with a new end-to-end [repository](https://github.com/jacopotagliabue/paas-data-ingestion), showing a serverless data ingestion and processing pipeline, that ideally sits upstream from all the MLOps processes detailed in this project.
 
 TO-DOs:
 
@@ -160,7 +159,7 @@ you completed the [setup](https://admin-docs.metaflow.org/metaflow-on-aws/deploy
 2. Environment Variables in AWS Batch
 	- The `@environment` decorator is used in conjunction with `@batch` to pass environment variables to
 		AWS Batch, which will not directly have access to env variables on your local machine
-	- In the `local` example, we use `@environemnt` to pass the Neptune.ai or Weights & Biases API Key (amongst other things)
+	- In the `local` example, we use `@environemnt` to pass the Weights & Biases API Key (amongst other things)
 3. Resuming Flows
 	- Resuming flows is useful during development to avoid re-running compute/time intensive steps
 		such as data preparation
@@ -177,10 +176,8 @@ you completed the [setup](https://admin-docs.metaflow.org/metaflow-on-aws/deploy
 Any serverless option there as well?
 
    *Yes*. In e-commerce use cases, for example, pixel tracking is standard (e.g. [Google Analytics](https://analytics.google.com/analytics/web/)),
-   so a serverless `/collect` endpoint can be used to get front-end data and drop it in a pure PaaS pipeline with [Firehose](https://aws.amazon.com/kinesis/data-firehose/)
-   and Snowpipe, for example. While a bit out-dated for some details, we championed exactly this approach a while ago: if you
-   want to know more, you can start from this [Medium](https://medium.com/tooso/server-less-is-more-98d4275c37ae) post 
-   and old [code](https://github.com/jacopotagliabue/pixel_from_lambda).
+   so a serverless `/collect` endpoint can be used to get front-end data. In January 2022, we released a new
+   [blog post](https://towardsdatascience.com/the-modern-data-pattern-d34d42216c81) and open-source [repository](https://github.com/jacopotagliabue/paas-data-ingestion) describing in detail a principled and serverless approach to this problem.
 
 *TBC*
 
