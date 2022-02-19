@@ -5,7 +5,7 @@ good and [wanna learn to do other stuff good too](https://www.youtube.com/watch?
 This is a WIP - check back often for updates.
 
 ## Philosophical Motivations
-There is plenty of tutorials and blog posts around the Internet on data pipelines and tooling. However:
+There are plenty of tutorials and blog posts around the Internet on data pipelines and tooling. However:
 
 * they (for good pedagogical reasons) tend to focus on _one_ tool / step at a time, leaving us to wonder how
 the rest of the pipeline works;
