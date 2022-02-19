@@ -118,7 +118,7 @@ class CartFlow(FlowSpec):
                        'BASE_IMAGE': os.getenv('BASE_IMAGE'),
                        'EN_BATCH': os.getenv('EN_BATCH')})
     # @ custom pip decorator for pip installation on Batch instance
-    @pip(libraries={'wandb': '0.10.30'})
+    @pip(libraries={'wandb': '0.12.10'})
     @step
     def train_model(self):
         """
