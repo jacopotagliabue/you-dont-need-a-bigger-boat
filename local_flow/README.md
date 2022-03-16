@@ -149,7 +149,8 @@ The AWS profile used for deployment can be specified in `.env` with the variable
 ## How to Run
 
 First, ensure that you have set the above mentioned environment variables, and have successfully
-performed the dataset upload into S3 as described above.
+performed the dataset upload into S3 as described above. Please note that if you want to run the flow
+without AWS batch, you should set the `EN_BATCH` variable in `.env` to `0`.
 
 ### Running Metaflow
 
