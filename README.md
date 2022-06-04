@@ -30,6 +30,8 @@ waste their time managing cloud resources.
 *Note #2*: when we say the pipeline is an "end-to-end solution", we *mean* it - it goes from millions of raw events
 to a working endpoint that you can ping. As such, there are *many* moving pieces and it may take a while to understand how all the pieces fit together: this is not meant to be a recipe for building a small ML-powered feature, but a template for building an entire AI company (at least, the beginning of one) - as such, the learning curve is a bit steeper, but you will be rewarded with a ML stack tried and tested at [unicorn](https://en.wikipedia.org/wiki/Unicorn_(finance)) scale.
 
+*Note #3*: starting June 2022, a new [repo](https://github.com/jacopotagliabue/post-modern-stack) is available, showcasing how to join dataOps and MLOps in a simplified, yet realistic environment: check it out as a gentler introduction to the same concepts!
+
 ## Overview
 The repo shows how several (mostly open-source) tools can be effectively combined together to run data pipelines at scale with very small teams. The
 project now features:
@@ -69,22 +71,18 @@ If you want to know more, you can give a look at the following material:
 * ["ML Ops at Reasonable Scale"](https://www.youtube.com/watch?v=Ndxpo4PeEms) (video), `Stanford MLSys`, July 2021;
 * ["You Do Not Need a Bigger Boat: Recommendations at Reasonable Scale in a (Mostly) Serverless and Open Stack"](https://dl.acm.org/doi/10.1145/3460231.3474604) [pre-print](https://arxiv.org/abs/2107.07346), `RecSys 2021`.
 
-*TBC*
-
 ## Status Update
 
-*January 2022*
+*June 2022*
 
-*  The Neptune team added a small [abstraction](https://github.com/jacopotagliabue/you-dont-need-a-bigger-boat/blob/main/local_flow/rec/src/utils.py) to deal with multiple experiment trackers, so the recs local flow now is even more flexible!
-*  Our [DAG cards](https://arxiv.org/abs/2110.13601) are now officially part of the [Metaflow codebase](https://outerbounds.com/blog/integrating-pythonic-visual-reports-into-ml-pipelines/).
-*  Our fourth episode in the MLOps [blog series](https://towardsdatascience.com/tagged/mlops-without-much-ops) comes with a new end-to-end [repository](https://github.com/jacopotagliabue/paas-data-ingestion), showing a serverless data ingestion and processing pipeline, that ideally sits upstream from all the MLOps processes detailed in this project.
+* Our fifth and last episode in our MLOps [blog series](https://towardsdatascience.com/the-post-modern-stack-993ec3b044c1) is out, discussing how our approach may change your perspective on COGS and other organizational metrics;
+* A new open source [repo](https://github.com/jacopotagliabue/post-modern-stack) has been released, showing a simplified version of many of the concepts in this project, to provide a gentler entry point into modern MLOps pipelines.
 
 TO-DOs:
 
 * finish feature store and monitoring integration;
 * add Github Action flow;
-* standardize AWS permissions / users (as now most commands are still launched as admin users);
-* providing an orchestrator-free version, by using step functions to manage the steps;
+* standardize AWS permissions / users (as now most commands are still launched as admin users).
 
 Want to join us and collaborate on the above? Please reach out!
 
