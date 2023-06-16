@@ -1,8 +1,11 @@
 # You Don't Need a Bigger Boat
-An end-to-end (Metaflow-based) implementation of an intent prediction (and session recommendation) flow for kids who can't MLOps
-good and [wanna learn to do other stuff good too](https://www.youtube.com/watch?v=NQ-8IuUkJJc).
+An end-to-end (Metaflow-based) implementation of an intent prediction (and session recommendation) flow for kids who can't MLOps good and [wanna learn to do other stuff good too](https://www.youtube.com/watch?v=NQ-8IuUkJJc).
 
-This is a WIP - check back often for updates.
+After few months of iterations, this project is now stable. _Quick Links_:
+
+* Our MLOps [blog series](https://towardsdatascience.com/the-post-modern-stack-993ec3b044c1) is completed;
+* A new open source [repo](https://github.com/jacopotagliabue/post-modern-stack) has been released, showing a simplified version of many of the concepts in this project, to provide a gentler entry point into modern MLOps pipelines;
+* A second open source [repo](https://github.com/jacopotagliabue/recs-at-resonable-scale) has been released in collaboration with Outerbounds and [NVIDIA](https://medium.com/nvidia-merlin/nvidia-merlin-meets-the-mlops-ecosystem-building-a-production-ready-recsys-pipeline-on-cloud-1a16c156166b), showing a Merlin-focused version of many of the concepts in this project.
 
 ## Philosophical Motivations
 There are plenty of tutorials and blog posts around the Internet on data pipelines and tooling. However:
@@ -14,16 +17,11 @@ when a real dataset and a real-world problem enter the scene.
 
 This repository (and soon-to-be-drafted written tutorial) aims to fill these gaps. In particular:
 
-* we provide open-source working code that glues together what we believe are some of the best tools in the ecosystem,
-going  _all the way_ from raw data to a deployed endpoint serving predictions;
-* we run the pipeline under a realistic load for companies at "[reasonable scale](https://www.youtube.com/watch?v=Ndxpo4PeEms)", leveraging
-a huge [open dataset](https://arxiv.org/abs/2104.09423) we released in 2021; moreover, we train a model for a real-world
-use case, and show how to monitor it after deployment.
+* we provide open-source working code that glues together what we believe are some of the best tools in the ecosystem, going  _all the way_ from raw data to a deployed endpoint serving predictions;
+* we run the pipeline under a realistic load for companies at "[reasonable scale](https://www.youtube.com/watch?v=Ndxpo4PeEms)", leveraging a huge [open dataset](https://arxiv.org/abs/2104.09423) we released in 2021; moreover, we train a model for a real-world use case, and show how to monitor it after deployment.
 
 The repo may also be seen as a (very opinionated) introduction to modern, PaaS-like pipelines (as also discussed [here](https://www.youtube.com/watch?v=Ndxpo4PeEms)); while there is obviously room for disagreement over tool X or tool Y, we believe the general principles to be sound for companies at
-"reasonable scale": in-between bare-bone infrastructure for Tech Giants, and ready-made solutions for low-code/simple
-scenarios, there is a world of exciting machine learning at scale for sophisticated practitioners who don't want to
-waste their time managing cloud resources.
+"reasonable scale": in-between bare-bone infrastructure for Tech Giants, and ready-made solutions for low-code/simple scenarios, there is a world of exciting machine learning at scale for sophisticated practitioners who don't want to waste their time managing cloud resources.
 
 *Note #1*: while the code is provided as an end-to-end solution, we may sacrifice some terseness for clarity / pedagogical reasons.
 
@@ -33,8 +31,7 @@ to a working endpoint that you can ping. As such, there are *many* moving pieces
 *Note #3*: starting June 2022, a new [repo](https://github.com/jacopotagliabue/post-modern-stack) is available, showcasing how to join dataOps and MLOps in a simplified, yet realistic environment: check it out as a gentler introduction to the same concepts!
 
 ## Overview
-The repo shows how several (mostly open-source) tools can be effectively combined together to run data pipelines at scale with very small teams. The
-project now features:
+The repo shows how several (mostly open-source) tools can be effectively combined together to run data pipelines at scale with very small teams. The project now features:
 
 * [Metaflow](https://metaflow.org/) for ML DAGs
 * [Snowflake](https://www.snowflake.com/) as a data warehouse solution (Alternatives: [Redshift](https://aws.amazon.com/redshift/))
@@ -52,14 +49,9 @@ We provide _two versions_ of the pipeline, depending on the sophistication of th
 
 * a _Metaflow-only_ version, which runs from static data files to Sagemaker as a single Flow, and can be run
 from a Metaflow-enabled laptop without much additional setup;
-* a _data warehouse_ version, which runs in a more realistic setup, reading data from Snowflake and using an external
-orchestrator to run the steps. In this setup, the downside is that a Snowflake and a Prefect Cloud accounts are required
-(nonetheless, both are veasy to get); the upside is that the pipeline reflects almost perfectly a real setup, and Metaflow
-can be used specifically for the ML part of the process.
+* a _data warehouse_ version, which runs in a more realistic setup, reading data from Snowflake and using an external orchestrator to run the steps. In this setup, the downside is that a Snowflake and a Prefect Cloud accounts are required (nonetheless, both are veasy to get); the upside is that the pipeline reflects almost perfectly a real setup, and Metaflow can be used specifically for the ML part of the process.
 
-The parallelism between the two scenarios should be pretty clear by looking at the two projects: if you are familiarizing with
-all the tools for the first time, we suggest you to start from the _Metaflow_ version and then move to the full-scale one
-when all the pieces of the puzzle are well understood.
+The parallelism between the two scenarios should be pretty clear by looking at the two projects: if you are familiarizing with all the tools for the first time, we suggest you to start from the _Metaflow_ version and then move to the full-scale one when all the pieces of the puzzle are well understood.
 
 *Note*: if you are new to Metaflow, we recommend you to go through the [official installation](https://docs.metaflow.org/getting-started/install) and this [stand-alone tutorial](https://github.com/jacopotagliabue/no-ops-machine-learning) first.
 
@@ -71,67 +63,41 @@ If you want to know more, you can give a look at the following material:
 * ["ML Ops at Reasonable Scale"](https://www.youtube.com/watch?v=Ndxpo4PeEms) (video), `Stanford MLSys`, July 2021;
 * ["You Do Not Need a Bigger Boat: Recommendations at Reasonable Scale in a (Mostly) Serverless and Open Stack"](https://dl.acm.org/doi/10.1145/3460231.3474604) [pre-print](https://arxiv.org/abs/2107.07346), `RecSys 2021`.
 
-## Status Update
-
-*June 2022*
-
-* Our fifth and last episode in our MLOps [blog series](https://towardsdatascience.com/the-post-modern-stack-993ec3b044c1) is out, discussing how our approach may change your perspective on COGS and other organizational metrics;
-* A new open source [repo](https://github.com/jacopotagliabue/post-modern-stack) has been released, showing a simplified version of many of the concepts in this project, to provide a gentler entry point into modern MLOps pipelines.
-
-TO-DOs:
-
-* finish feature store and monitoring integration;
-* add Github Action flow;
-* standardize AWS permissions / users (as now most commands are still launched as admin users).
-
-Want to join us and collaborate on the above? Please reach out!
-
 ## Setup
- 
+
 ### General Prerequisites (do this first!)
 
-Irrespectively of the flow you wish to run, some general tools need to be in place: Metaflow of course, 
-as the heart of our ML practice, but also data and AWS users/roles. *Please go through the general items below before
-tackling the flow-specific instructions*. 
+Irrespectively of the flow you wish to run, some general tools need to be in place: Metaflow of course,
+as the heart of our ML practice, but also data and AWS users/roles. *Please go through the general items below before tackling the flow-specific instructions*.
 
-After you finish the prerequisites below, you can run the flow you desire: each folder - `remote` and `local` - contains 
-a specific README which should allow you to quickly run the project end-to-end: please refer to that documentation for 
-flow-specific instructions (check back often for updates).
+After you finish the prerequisites below, you can run the flow you desire: each folder - `remote` and `local` - contains a specific README which should allow you to quickly run the project end-to-end: please refer to that documentation for flow-specific instructions.
 
 #### Dataset
 
 The project leverages the open dataset from the [2021 Coveo Data Challenge](https://github.com/coveooss/SIGIR-ecom-data-challenge):
 the dataset can be downloaded directly from [here](https://www.coveo.com/en/ailabs/sigir-ecom-data-challenge) (refer to the
 full [README](https://github.com/coveooss/SIGIR-ecom-data-challenge) for terms and conditions).
-Data is freely available under a research-friendly license - for background information on the dataset, 
-the use cases and relevant work in the ML literature, please refer to the 
+Data is freely available under a research-friendly license - for background information on the dataset,
+the use cases and relevant work in the ML literature, please refer to the
 accompanying [paper](https://arxiv.org/abs/2104.09423).
 
-Once you download and unzip the dataset in a local folder of your choice 
-(the zip contains 3 files, `browsing_train.csv`, `search_train.csv`, `sku_to_content.csv`), 
-write down their location as an absolute path (e.g. `/Users/jacopo/Documents/data/train/browsing_train.csv`): 
+Once you download and unzip the dataset in a local folder of your choice
+(the zip contains 3 files, `browsing_train.csv`, `search_train.csv`, `sku_to_content.csv`),
+write down their location as an absolute path (e.g. `/Users/jacopo/Documents/data/train/browsing_train.csv`):
 both projects need to know where the dataset is.
 
 #### AWS
 
-Both projects  - `remote` and `local` - use AWS services extensively - and by design: this ties back to our philosophy 
-of PaaS-whenever-possible, and play nicely with our core adoption of Metaflow. While you can setup your users in many
-functionally equivalent ways, note that if you want to run the pipeline from ingestion to serving you need to be 
-comfortable with the following AWS interactions:
+Both projects  - `remote` and `local` - use AWS services extensively - and by design: this ties back to our philosophy of PaaS-whenever-possible, and play nicely with our core adoption of Metaflow. While you can setup your users in many functionally equivalent ways, note that if you want to run the pipeline from ingestion to serving you need to be comfortable with the following AWS interactions:
 
 * Metaflow stack (see below): we assume you installed the Metaflow stack and can run it with an AWS profile of your choice;
 * Serverless stack (see below): we assume you can run `serverless deploy` in your AWS stack;
 * Sagemaker user: we assume you have an AWS user with permissions to manage Sagemaker endpoints (it may be totally
 distinct from any other Metaflow user).
 
-*TBC*
-
 #### Serverless
 
-We wrap Sagemaker predictions in a serverless REST endpoint provided by AWS Lambda and API Gateway. To manage the lambda
-stack we use [Serverless](https://www.serverless.com/cli/) as a wrapper around AWS infrastructure.
-
-*TBC*
+We wrap Sagemaker predictions in a serverless REST endpoint provided by AWS Lambda and API Gateway. To manage the lambda stack we use [Serverless](https://www.serverless.com/cli/) as a wrapper around AWS infrastructure.
 
 #### Metaflow
 
@@ -170,14 +136,15 @@ you completed the [setup](https://admin-docs.metaflow.org/metaflow-on-aws/deploy
 
 ## FAQ
 
-1. Both projects deal with data that has already been ingested/transmitted to the pipeline, but are silent on data collection.
-Any serverless option there as well?
+1. Both projects deal with data that has already been ingested/transmitted to the pipeline, but are silent on data collection. Any serverless option there as well?
 
    *Yes*. In e-commerce use cases, for example, pixel tracking is standard (e.g. [Google Analytics](https://analytics.google.com/analytics/web/)),
    so a serverless `/collect` endpoint can be used to get front-end data. In January 2022, we released a new
    [blog post](https://towardsdatascience.com/the-modern-data-pattern-d34d42216c81) and open-source [repository](https://github.com/jacopotagliabue/paas-data-ingestion) describing in detail a principled and serverless approach to this problem.
 
-*TBC*
+2. What is missing / could be added if I wanted to collaborate on this project?
+
+Few obvious things that are missing are: i) add some GitHub actions for CI/CD; ii) standardize AWS permissions / users (as now most all commands work when launched as admin users). Want to join us? Please reach out!
 
 ## Contributors
 
