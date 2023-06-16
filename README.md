@@ -7,6 +7,8 @@ After few months of iterations, this project is now stable. _Quick Links_:
 * A new open source [repo](https://github.com/jacopotagliabue/post-modern-stack) has been released, showing a simplified version of many of the concepts in this project, to provide a gentler entry point into modern MLOps pipelines;
 * A second open source [repo](https://github.com/jacopotagliabue/recs-at-resonable-scale) has been released in collaboration with Outerbounds and [NVIDIA](https://medium.com/nvidia-merlin/nvidia-merlin-meets-the-mlops-ecosystem-building-a-production-ready-recsys-pipeline-on-cloud-1a16c156166b), showing a Merlin-focused version of many of the concepts in this project.
 
+_If you find this project (or its siste repositories above) useful, please add a star!_
+
 ## Philosophical Motivations
 There are plenty of tutorials and blog posts around the Internet on data pipelines and tooling. However:
 
@@ -144,7 +146,7 @@ you completed the [setup](https://admin-docs.metaflow.org/metaflow-on-aws/deploy
 
 2. What is missing / could be added if I wanted to collaborate on this project?
 
-Few obvious things that are missing are: i) add some GitHub actions for CI/CD; ii) standardize AWS permissions / users (as now most all commands work when launched as admin users). Want to join us? Please reach out!
+	Few obvious things that are missing are: i) add GitHub actions for CI/CD; ii) standardize AWS permissions (as now most all commands work when launched as admin users). Want to join us? Please reach out!
 
 ## Contributors
 
